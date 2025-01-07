@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-    # MySQL container (for app data)
+
   chat_db:
     image: mysql:8.0
     container_name: chat_db
@@ -15,18 +15,17 @@ services:
     networks:
       - chat_network
 
-  # PHP container for Symfony with Composer installed
   backend:
     build: 
       context: ./backend
       dockerfile: Dockerfile.dev
     container_name: chat_backend
     volumes:
-      - ./backend/app:/var/www/html  # Mount your local code to the container
+      - ./backend/app:/var/www/html
       #- ./backend/config/jwt:/var/www/html/config/jwt
     working_dir: /var/www/html
     ports:
-      - "8000:8000"  # Ensure this line is here to expose the port
+      - "8000:8000"
     networks:
       - chat_network
     environment:

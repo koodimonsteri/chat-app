@@ -27,7 +27,6 @@ if [ ! -f /tmp/.setup_done ]; then
     echo "Creating database with Doctrine..."
     php bin/console doctrine:database:create --if-not-exists --env=$APP_ENV
 
-    # Run Symfony migrations
     echo "Running Symfony migrations..."
     php bin/console doctrine:migrations:migrate --no-interaction
 
@@ -41,5 +40,4 @@ fi
 echo "Clearing cache..."
 php bin/console cache:clear --env=$APP_ENV
 
-# Execute the main process (Symfony, PHP-FPM, or any other service you use)
 exec "$@"

@@ -29,7 +29,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     #[Groups(['user:create'])]
     private ?string $pw_hash = null;
 
-    #[ORM\Column(type: 'json')]  // Use JSON to store array of roles
+    #[ORM\Column(type: 'json')]
     private array $roles = [];
 
     #[ORM\Column]
@@ -55,11 +55,10 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     public function getRoles(): array
     {
         $roles = $this->roles ?? [];
-        // Ensure the user has at least one role
         if (empty($roles)) {
-            $roles[] = 'ROLE_USER';  // Adding a default role if none is set
+            $roles[] = 'ROLE_USER';
         }
-        return array_unique($roles);  // Remove duplicate roles if any
+        return array_unique($roles);
     }
 
     public function setRoles(array $roles): self
