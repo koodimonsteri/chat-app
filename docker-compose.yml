@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+    # MySQL container (for app data)
+  chat_db:
+    image: mysql:8.0
+    container_name: chat_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - chat_db_data:/var/lib/mysql
+    networks:
+      - chat_network
+
+  # PHP container for Symfony with Composer installed
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: chat_backend
+    volumes:
+      - ./backend/app:/var/www/html  # Mount your local code to the container
+      #- ./backend/config/jwt:/var/www/html/config/jwt
+    working_dir: /var/www/html
+    ports:
+      - "8000:8000"  # Ensure this line is here to expose the port
+    networks:
+      - chat_network
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - APP_ENV=dev
+    depends_on:
+      - chat_db
+    command: php-fpm
+    
+  #frontend:
+  #  build: ./frontend
+  #  container_name: chat_frontend
+  #  ports:
+  #    - "3000:3000"
+  #  volumes:
+  #    - ./frontend/app:/app
+  #  networks:
+  #    - chat_network
+
+networks:
+  chat_network:
+    driver: bridge
+
+volumes:
+  chat_db_data:

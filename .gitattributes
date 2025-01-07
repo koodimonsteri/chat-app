@@ -1,0 +1,5 @@
+# Set all files to use automatic line-ending conversion (LF on Linux, CRLF on Windows)
+* text=auto
+
+# Ensure shell scripts always use LF endings (even on Windows)
+*.sh text eol=lf

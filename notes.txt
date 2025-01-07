@@ -1,0 +1,112 @@
+chat
+-docker-compose.yml
+-backend
+--Dockerfile
+--app
+---php symfony stuff
+-frontend
+--Dockerfile
+--app
+---react stuff
+------------------------------
+setting up the project:
+
+build backend with command:
+docker-compose up --build -d
+
+install symfony skeleton:
+docker-compose run --rm php composer create-project symfony/skeleton .
+
+run server with command:
+docker-compose exec php php -S 0.0.0.0:8000 -t public
+
+install api:
+docker-compose exec php composer require api
+
+install orm:
+docker-compose exec php composer require symfony/orm-pack
+
+install serializer:
+docker-compose exec php composer require symfony/serializer-pack
+
+security core for password hashing:
+docker-compose exec php composer require symfony/security-core
+
+maker bundle:
+docker-compose exec php composer require --dev symfony/maker-bundle
+
+show compose packages:
+docker-compose exec php composer show
+
+
+create the database:
+docker-compose exec php php bin/console doctrine:database:create
+
+verify that database exists:
+docker-compose exec chat_db mysql -u root -proot
+SHOW DATABASES;
+
+if it exists already, you can drop it with this command and then recreate it:
+docker-compose exec chat_db mysql -u root -proot -e "DROP DATABASE chat_db;"
+
+-------------------------------------------------------------------
+
+recreating the database:
+docker-compose exec chat_db mysql -u root -proot -e "DROP DATABASE chat_db;"
+docker-compose exec php php bin/console doctrine:database:create
+docker-compose exec php php bin/console doctrine:migrations:migrate
+
+-------------------------------------------------------------
+
+create entities with make tool:
+docker-compose exec php php bin/console make:entity User
+
+create controllers with make tool:
+docker-compose exec php php bin/console make:controller UserController
+
+check that files in docker:
+docker-compose exec php ls /var/www/html/src/Entity/
+
+clear doctrine cache:
+docker-compose exec php php bin/console cache:clear
+docker-compose exec php php bin/console doctrine:cache:clear-metadata 
+
+inspect doctrine mappings:
+docker-compose exec php php bin/console doctrine:mapping:info
+
+migration status:
+docker-compose exec php php bin/console doctrine:migrations:status
+
+list migrations:
+docker-compose exec php php bin/console doctrine:migrations:list
+
+validate doctrine mappings:
+docker-compose exec php php bin/console doctrine:schema:validate
+
+generate diff:
+docker-compose exec php php bin/console doctrine:migrations:diff
+
+create doctrine schemas:
+docker-compose exec php php bin/console doctrine:schema:create
+
+run migrations:
+docker-compose exec php php bin/console doctrine:migrations:migrate
+docker-compose exec php php bin/console make:migration
+
+update if migration table was left behind for some reason ??
+docker-compose exec php php bin/console doctrine:schema:update --force -v
+
+
+
+debug routes:
+docker-compose exec php php bin/console debug:router -v
+
+restart server:
+docker-compose exec php php bin/console server:restart
+
+JWT authentication:
+docker-compose exec php composer remove lexik/jwt-authentication-bundle
+docker-compose exec php composer require lexik/jwt-authentication-bundle
+mkdir -p config/jwt
+openssl genpkey -algorithm RSA -out config/jwt/private.pem -pkeyopt rsa_keygen_bits:4096
+openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
