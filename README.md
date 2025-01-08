@@ -10,5 +10,5 @@ docker-compose up --build -d
 then you can start server\
 docker-compose exec backend php -S 0.0.0.0:8000 -t public
 
-
+Simple react frontend to register/login
 

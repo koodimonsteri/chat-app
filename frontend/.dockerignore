@@ -1,0 +1,12 @@
+app/node_modules/
+
+*.log
+
+Dockerfile
+.dockerignore
+
+app/build/
+app/dist/
+
+.idea/
+.vscode/

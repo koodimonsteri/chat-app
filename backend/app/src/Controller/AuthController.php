@@ -20,7 +20,6 @@ class AuthController extends AbstractController
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request, ValidatorInterface $validator, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository, EntityManagerInterface $entityManager): JsonResponse
     {
-        // Decode the incoming JSON request body to DTO
         $data = json_decode($request->getContent(), true);
 
         if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
@@ -34,7 +33,6 @@ class AuthController extends AbstractController
         $dto->email = $data['email'];
         $dto->password = $data['password'];
 
-        // Validate the DTO
         $violations = $validator->validate($dto);
         if (count($violations) > 0) {
             return $this->json([
@@ -43,7 +41,6 @@ class AuthController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Check if the user already exists (optional)
         if ($userRepository->findOneBy(['email' => $dto->email])) {
             return $this->json([
                 'message' => 'Email is already registered.',
@@ -56,7 +53,6 @@ class AuthController extends AbstractController
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Create a new user
         $user = new User();
         $user->setUsername($dto->username);
         $user->setEmail($dto->email);
@@ -65,7 +61,6 @@ class AuthController extends AbstractController
         $hashedPassword = $passwordHasher->hashPassword($user, $dto->password);
         $user->setPassword($hashedPassword);
 
-        // Save the user
         $entityManager->persist($user);
         $entityManager->flush();
 

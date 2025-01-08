@@ -12,19 +12,16 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class ChatController extends AbstractController
 {
-    // To retrieve all chats as JSON
     #[Route('/api/chats', name: 'api_chat_index', methods: ['GET'])]
     public function index(ChatRepository $chatRepository, SerializerInterface $serializer): JsonResponse
     {
         $chats = $chatRepository->findAll();
 
-        // Serialize the data into JSON format
         $data = $serializer->serialize($chats, 'json', ['groups' => 'chat:read']);
 
         return new JsonResponse($data, 200, [], true);
     }
 
-    // To create a new chat
     #[Route('/api/chats', name: 'api_chat_create', methods: ['POST'])]
     public function create(Request $request, ChatRepository $chatRepository, SerializerInterface $serializer): JsonResponse
     {
@@ -39,7 +36,6 @@ class ChatController extends AbstractController
             $entityManager->persist($chat);
             $entityManager->flush();
 
-            // Serialize and return the created chat data
             $data = $serializer->serialize($chat, 'json', ['groups' => 'chat:read']);
 
             return new JsonResponse($data, 201, [], true);
@@ -48,7 +44,6 @@ class ChatController extends AbstractController
         return new JsonResponse(['error' => 'Invalid data'], 400);
     }
 
-    // To get a single chat by ID
     #[Route('/api/chats/{id}', name: 'api_chat_show', methods: ['GET'])]
     public function show(int $id, ChatRepository $chatRepository, SerializerInterface $serializer): JsonResponse
     {
@@ -58,12 +53,10 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Chat not found'], 404);
         }
 
-        // Serialize and return the chat data
         $data = $serializer->serialize($chat, 'json', ['groups' => 'chat:read']);
         return new JsonResponse($data, 200, [], true);
     }
 
-    // To update a chat
     #[Route('/api/chats/{id}', name: 'api_chat_update', methods: ['PUT'])]
     public function update(int $id, Request $request, ChatRepository $chatRepository, SerializerInterface $serializer): JsonResponse
     {
@@ -73,7 +66,6 @@ class ChatController extends AbstractController
             return new JsonResponse(['error' => 'Chat not found'], 404);
         }
 
-        // Parse input data
         $data = json_decode($request->getContent(), true);
 
         if (isset($data['name'])) {
@@ -81,7 +73,6 @@ class ChatController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->flush();
 
-            // Serialize and return the updated chat data
             $data = $serializer->serialize($chat, 'json', ['groups' => 'chat:read']);
             return new JsonResponse($data, 200, [], true);
         }
@@ -89,7 +80,6 @@ class ChatController extends AbstractController
         return new JsonResponse(['error' => 'Invalid data'], 400);
     }
 
-    // To delete a chat
     #[Route('/api/chats/{id}', name: 'api_chat_delete', methods: ['DELETE'])]
     public function delete(int $id, ChatRepository $chatRepository): JsonResponse
     {

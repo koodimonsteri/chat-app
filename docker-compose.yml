@@ -39,15 +39,32 @@ services:
       - chat_db
     command: php-fpm
     
-  #frontend:
-  #  build: ./frontend
-  #  container_name: chat_frontend
-  #  ports:
-  #    - "3000:3000"
-  #  volumes:
-  #    - ./frontend/app:/app
-  #  networks:
-  #    - chat_network
+  frontend:
+    container_name: chat_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules
+    networks:
+      - chat_network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=false
+      - WDS_SOCKET_PORT=3000
+    #depends_on:
+    #  - backend
+    #deploy:
+    #  resources:
+    #    limits:
+    #      memory: 2g
+    #    reservations:
+    #      memory: 1g
 
 networks:
   chat_network:

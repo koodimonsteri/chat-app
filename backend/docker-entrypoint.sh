@@ -8,8 +8,8 @@ if [ ! -f /tmp/.setup_done ]; then
     if [ ! -f /var/www/html/config/jwt/private.key ]; then
         echo "JWT private and public keys not found. Generating..."
         mkdir -p /var/www/html/config/jwt
-        openssl genpkey -out /var/www/html/config/jwt/private.key -algorithm RSA -pkeyopt rsa_keygen_bits:4096
-        openssl rsa -pubout -in /var/www/html/config/jwt/private.key -out /var/www/html/config/jwt/public.key
+        openssl genpkey -out /var/www/html/config/jwt/private.pem -algorithm RSA -pkeyopt rsa_keygen_bits:4096
+        openssl rsa -pubout -in /var/www/html/config/jwt/private.pem -out /var/www/html/config/jwt/public.pem
         echo "JWT keys generated successfully."
     fi
 
