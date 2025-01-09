@@ -232,7 +232,7 @@ class ChatController extends AbstractController
         return new JsonResponse(['message' => 'Chat removed successfully'], 200);
     }
 
-    #[Route('/{id}/invite', name: 'chat_invite', methods: ['POST'])]
+    #[Route('/{id}/invite-user', name: 'chat_invite', methods: ['POST'])]
     public function inviteUserToChat(
         int $id,
         Request $request,
@@ -289,5 +289,48 @@ class ChatController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'User invited to chat successfully'], 201);
+    }
+
+    #[Route('/{id}/remove-user', name: 'chat_remove_user', methods: ['POST'])]
+    public function removeUserFromChat(
+        int $id,
+        Request $request,
+        ChatRepository $chatRepository,
+        UserChatRepository $userChatRepository,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager
+    ): JsonResponse {
+        $user = $this->security->getUser();
+        
+        $userChat = $userChatRepository->findOneBy(['user' => $user, 'chat' => $id]);
+        if (!$userChat) {
+            return new JsonResponse(['error' => 'Chat not found or access denied'], 403);
+        }
+
+        $chat = $userChat->getChat();
+        if ($user !== $chat->getChatOwner()) {
+            return new JsonResponse(['error' => 'You are not the owner of this chat'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $username = $data['username'] ?? null;
+        if (!$username) {
+            return new JsonResponse(['error' => 'Username is required'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        $userToRemove = $userRepository->findOneBy(['username' => $username]);
+        if (!$userToRemove) {
+            return new JsonResponse(['error' => 'User not found'], 404);
+        }
+
+        $userChatToRemove = $userChatRepository->findOneBy(['user' => $userToRemove, 'chat' => $chat]);
+        if (!$userChatToRemove) {
+            return new JsonResponse(['error' => 'User is not a member of this chat'], 400);
+        }
+
+        $entityManager->remove($userChatToRemove);
+        $entityManager->flush();
+
+        return new JsonResponse(['message' => 'User removed from chat successfully'], 200);
     }
 }
