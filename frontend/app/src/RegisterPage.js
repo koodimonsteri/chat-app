@@ -20,9 +20,9 @@ const validationSchema = Yup.object({
 
 
 const RegisterPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('');
+  //const [username, setUsername] = useState('');
+  //const [password, setPassword] = useState('');
+  //const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -51,7 +51,7 @@ const RegisterPage = () => {
           body: requestBody,
       });
 
-      const data = await response.json();
+      //const data = await response.json();
 
       if (response.ok) {
         setSuccess(true);

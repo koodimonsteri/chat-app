@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './RegisterPage.css';
 
 const LoginPage = () => {
@@ -8,6 +8,7 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -35,6 +36,7 @@ const LoginPage = () => {
         localStorage.setItem('jwt_token', data.token);
         setSuccess(true);
         console.log('Login successful:', data);
+        navigate('/dashboard');
       } else {
         setError(data.message || 'Login failed');
       }
