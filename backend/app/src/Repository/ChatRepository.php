@@ -16,6 +16,10 @@ class ChatRepository extends ServiceEntityRepository
         parent::__construct($registry, Chat::class);
     }
 
+    public function findAllPublicChats(): array
+    {
+        return $this->findBy(['is_private' => false]);
+    }
     //    /**
     //     * @return Chat[] Returns an array of Chat objects
     //     */

@@ -27,8 +27,6 @@ WORKDIR /var/www/html
 
 COPY ./app .
 
-#COPY ./app/composer.json .
-
 # Install Symfony dependencies using Composer
 RUN composer install --no-interaction --optimize-autoloader
 

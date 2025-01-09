@@ -3,16 +3,17 @@
 namespace App\Controller;
 
 use App\Dto\RegisterUserDto;
+use App\Dto\LoginDto;
 use App\Entity\User;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
 #[Route('/api', name: 'api_')]
 class AuthController extends AbstractController
@@ -70,9 +71,8 @@ class AuthController extends AbstractController
     }
 
     #[Route('/login', name: 'login', methods: ['POST'])]
-    public function login(Request $request, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository, JWTTokenManagerInterface $JWTManager): JsonResponse
+    public function login(Request $request, UserPasswordHasherInterface $passwordHasher, UserRepository $userRepository, JWTTokenManagerInterface $JWTManager, ValidatorInterface $validator): JsonResponse
     {
-        // Assuming you have the email and password from the request
         $data = json_decode($request->getContent(), true);
 
         if (empty($data['username']) || empty($data['password'])) {
@@ -80,13 +80,20 @@ class AuthController extends AbstractController
                 'message' => 'Missing required fields: username or password',
             ], JsonResponse::HTTP_BAD_REQUEST);
         }
+        
+        $dto = new LoginDto();
+        $dto->username = $data['username'];
+        $dto->password = $data['password'];
 
-        $username = $data['username'];
-        $plainPassword = $data['password'];
+        $violations = $validator->validate($dto);
+        if (count($violations) > 0) {
+            return $this->json([
+                'message' => 'Validation failed',
+                'errors' => (string) $violations,
+            ], JsonResponse::HTTP_BAD_REQUEST);
+        }
 
-        // Find the user by email
-        $user = $userRepository->findOneBy(['username' => $username]);
-
+        $user = $userRepository->findOneBy(['username' => $dto->username]);
         if (!$user) {
             return $this->json([
                 'message' => 'Invalid username.',
@@ -94,7 +101,7 @@ class AuthController extends AbstractController
         }
 
         // Verify the password against the stored hashed password
-        if (!$passwordHasher->isPasswordValid($user, $plainPassword)) {
+        if (!$passwordHasher->isPasswordValid($user, $dto->password)) {
             return $this->json([
                 'message' => 'Invalid credentials.',
             ], JsonResponse::HTTP_UNAUTHORIZED);
@@ -102,7 +109,6 @@ class AuthController extends AbstractController
         
         $token = $JWTManager->create($user);
 
-        // Handle successful login (e.g., issue a JWT or session)
         return $this->json([
             'message' => 'Login successful.',
             'token' => $token,

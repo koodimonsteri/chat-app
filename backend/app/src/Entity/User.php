@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -18,7 +19,7 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255, unique: true)]
-    #[Groups(['user:read', 'user:create'])]
+    #[Groups(['user:read', 'user:create', 'chat:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255, unique: true)]
@@ -67,9 +68,14 @@ class User implements PasswordAuthenticatedUserInterface, UserInterface
         return $this;
     }
 
-    public function eraseCredentials()
+    public function eraseCredentials(): void
     {
         // You can add code here to erase any sensitive data, if necessary.
+    }
+
+    public function getUsername(): ?string
+    {
+        return $this->username;
     }
 
     public function setUsername(string $username): static

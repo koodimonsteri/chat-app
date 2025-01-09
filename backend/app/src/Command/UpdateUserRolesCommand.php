@@ -27,16 +27,13 @@ class UpdateUserRolesCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Find all users with null roles
         $users = $this->entityManager->getRepository(User::class)->findBy(['roles' => null]);
 
-        // Iterate through each user and set their roles to an empty array
         foreach ($users as $user) {
-            $user->setRoles([]);  // Set empty roles array
+            $user->setRoles([]);
             $this->entityManager->persist($user);
         }
 
-        // Flush the changes to the database
         $this->entityManager->flush();
 
         $output->writeln('User roles updated successfully!');
