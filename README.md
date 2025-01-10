@@ -2,8 +2,10 @@
 
 Learning some php and symfony.\
 Created REST API backend.\
-Implemented /register and /login\
-Implemented /chat route to manage chats
+Routes:
+/auth with /register and /login\
+/chat to manage chats\
+/user
 
 React frontend to register/login\
 Dashboard to manage chats WIP
