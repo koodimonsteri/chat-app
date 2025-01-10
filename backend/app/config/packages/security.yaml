@@ -15,10 +15,10 @@ security:
             security: false
         
         login:
-            pattern:  ^/api/login
+            pattern:  ^/api/auth/login
             stateless: true
         register:
-            pattern:  ^/api/register
+            pattern:  ^/api/auth/register
             stateless: true
         api:
             pattern:   ^/api
@@ -51,10 +51,11 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/chats, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/auth/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/login,    roles: PUBLIC_ACCESS }
+        - { path: ^/api/chats,         roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/user,          roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api,               roles: IS_AUTHENTICATED_FULLY }
 
 when@test:
     security:

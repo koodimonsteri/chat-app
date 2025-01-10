@@ -43,7 +43,7 @@ const RegisterPage = () => {
           email: values.email,
           password: values.password,
       });
-      const response = await fetch(`${apiUrl}/api/register`, {
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -55,7 +55,6 @@ const RegisterPage = () => {
 
       if (response.ok) {
         setSuccess(true);
-        // Optionally, redirect to login page after successful registration
         setTimeout(() => {
             navigate('/');
         }, 2000);

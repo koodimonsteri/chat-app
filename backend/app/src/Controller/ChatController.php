@@ -68,7 +68,7 @@ class ChatController extends AbstractController
         $userChats = $this->userChatRepository->findByUser($user);
         if (empty($userChats)) {
             $this->logger->notice('No chats found for user with ID: ' . $user->getId());
-            return new JsonResponse(['error' => 'No chats found for user'], 404);
+            return new JsonResponse(['error' => 'No chats found for user'], 200);
         }
 
         $chats = [];

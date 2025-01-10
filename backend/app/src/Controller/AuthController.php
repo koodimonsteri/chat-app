@@ -14,8 +14,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
 
-#[Route('/api', name: 'api_')]
+#[Route('/api/auth', name: 'api_auth_')]
 class AuthController extends AbstractController
 {
     #[Route('/register', name: 'register', methods: ['POST'])]
@@ -122,7 +123,7 @@ class AuthController extends AbstractController
         return new JsonResponse(['message' => 'Logged out successfully']);
     }
 
-    #[Route('/api/test', name: 'test_route', methods: ['GET'])]
+    #[Route('/test', name: 'test_route', methods: ['GET'])]
     public function testRoute(): JsonResponse
     {
         return new JsonResponse(['message' => 'Test route works!']);
