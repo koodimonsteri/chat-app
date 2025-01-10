@@ -15,5 +15,5 @@ docker-compose up --build -d
 
 then you can start server\
 docker-compose exec backend php -S 0.0.0.0:8000 -t public\
-API can be accessed in http://localhost:8000\
+API can be accessed in http://localhost:8000 \
 frontend can be accessed in http://localhost:3000
