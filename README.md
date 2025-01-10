@@ -6,7 +6,7 @@ Implemented /register and /login\
 Implemented /chat route to manage chats
 
 React frontend to register/login\
-Dashboard to manage chats WIP\
+Dashboard to manage chats WIP
 
 Project is set up so that you can just build it with docker.\
 rename .env.example to .env in project root\
