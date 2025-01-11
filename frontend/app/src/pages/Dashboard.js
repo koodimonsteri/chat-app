@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import './Dashboard.css';
 import Spinner from '../components/Spinner';
+import UserDropdown from '../components/UserDropdown';
+
+import { fetchCurrentUser, createChat, fetchMyChats, fetchPublicChats } from '../api';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('myChats'); // Default tab is "My Chats"
@@ -22,12 +25,14 @@ const Dashboard = () => {
   const [loadingPublicChats, setLoadingPublicChats] = useState(false);
   const [publicChatError, setPublicChatError] = useState('');
 
-  const [currentUser, setCurrentUser] = useState(null); // Stores current user info
+  const [currentUser, setCurrentUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const userDropdownRef = useRef(null);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   const navigate = useNavigate();
-
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const location = useLocation()
 
   const handleCreateFormInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -37,47 +42,42 @@ const Dashboard = () => {
     });
   };
 
-  const fetchCurrentUser = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/api/user/current`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch current user');
-      }
-      const userData = await response.json();
-      setCurrentUser(userData);
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-    } finally {
-      setLoadingUser(false);
-    }
-  };
   useEffect(() => {
-    fetchCurrentUser();
+    const handleRouteChange = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handleRouteChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+    };
   }, []);
+
+  const handleSettings = () => {
+    console.log('Redirect to settings page');
+    navigate('/user/settings')
+  };
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const result = await fetchCurrentUser();
+      if (result.error === 'JWT expired') {
+        localStorage.removeItem('jwt_token');
+        navigate('/');
+      } else {
+        setCurrentUser(result);
+      }
+      setLoadingUser(false);
+    };
+    fetchUserData();
+  }, [navigate]);
 
   const handleCreateFormSubmit = async (e) => {
     e.preventDefault();
     setCreateChatFormError('');
     setCreateChatFormSuccess('');
     try {
-      const response = await fetch(`${apiUrl}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-        },
-        body: JSON.stringify(createChatFormData),
-      });
-      if (!response.ok) {
-        throw new Error('Failed to create chat');
-      }
+      const newChat = await createChat(createChatFormData);
       setCreateChatFormSuccess('Chat created successfully!');
       setCreateChatFormData({ name: '', is_private: true });
-      //setActiveTab('myChats')
     } catch (error) {
       setCreateChatFormError(error.message || 'An error occurred');
     }
@@ -87,55 +87,59 @@ const Dashboard = () => {
     setExpandedChat((prev) => (prev === chatId ? null : chatId));
   };
 
-  const fetchMyChats = async () => {
+  const loadMyChatsData = async () => {
     setLoadingChats(true);
-    setMyChatsError('');
-    try {
-      const response = await fetch(`${apiUrl}/api/chat/user`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch chats');
-      }
-      const data = await response.json();
-      setMyChats(data);
-    } catch (error) {
-      setMyChatsError(error.message || 'An error occurred');
-    } finally {
-      setLoadingChats(false);
+    const result = await fetchMyChats();
+    if (result.error === 'JWT expired') {
+      localStorage.removeItem('jwt_token');
+      navigate('/');
+    } else {
+      setMyChats(result);
     }
+    setLoadingChats(false);
   };
 
-  const fetchPublicChats = async () => {
+  const loadPublicChatsData = async () => {
     setLoadingPublicChats(true);
-    setPublicChatError('');
-    try {
-      const response = await fetch(`${apiUrl}/api/chat`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch public chats');
-      }
-      const data = await response.json();
-      setPublicChats(data);
-    } catch (error) {
-      setPublicChatError(error.message || 'An error occurred');
-    } finally {
-      setLoadingPublicChats(false);
+    const result = await fetchPublicChats();
+    if (result.error === 'JWT expired') {
+      localStorage.removeItem('jwt_token');
+      navigate('/');
+    } else {
+      setPublicChats(result);
     }
+    setLoadingPublicChats(false);
   };
 
   useEffect(() => {
     if (activeTab === 'myChats') {
-      fetchMyChats();
+      loadMyChatsData();
     } else if (activeTab === 'public') {
-      fetchPublicChats();
+      loadPublicChatsData();
     }
   }, [activeTab]);
+
+  const handleOutsideClick = (event) => {
+    if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+      setUserDropdownOpen(false);
+    }
+  };
+
+  const handleDashboard = () => {
+    navigate('/dashboard');
+  };
+
+  useEffect(() => {
+    if (userDropdownOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    } else {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [userDropdownOpen]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -213,9 +217,6 @@ const Dashboard = () => {
                         <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
                         <div className="chat-actions">
                           <button className="join-button">Join</button>
-                          {currentUser?.username === chat.chat_owner.username && (
-                            <button className="invite-button">Invite</button>
-                          )}
                         </div>
                       </div>
                     )}
@@ -232,6 +233,12 @@ const Dashboard = () => {
     }
   };
 
+  const handleGoToDashboard = () => {
+    if (location.pathname !== '/dashboard') {
+      navigate('/dashboard');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('jwt_token');
     navigate('/');
@@ -239,11 +246,22 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-page">
-      <div className="dashboard-header">
-        <h1>Chat Dashboard</h1>
-        <button className="logout-button" onClick={handleLogout}>
-          Logout
-        </button>
+      <div className="dashboard-header ref={userDropdownRef}">
+        <h1>Dashboard</h1>
+        <div className="chat-dashboard-btn-container">
+          <button className="chat-dashboard-btn">
+            Chat Dashboard
+          </button>
+        </div>
+        <UserDropdown
+          ref={userDropdownRef}
+          currentUser={currentUser}
+          onSettings={handleSettings}
+          onLogout={handleLogout}
+          onDashboard={handleDashboard}
+          showDashboardButton={currentPath === '/user/settings'}
+          onClose={() => setUserDropdownOpen(false)} 
+        />
       </div>
       <div className="dashboard-nav">
         <button

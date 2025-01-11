@@ -31,6 +31,8 @@ class UserController extends AbstractController
     #[Route('/update', name: 'update_user', methods: ['PUT'])]
     public function updateUser()
     {
+        $user = $this->security->getUser();
+        
         //TODO: Update user
     }
 

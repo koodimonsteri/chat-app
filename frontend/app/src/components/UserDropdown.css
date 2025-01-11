@@ -1,0 +1,30 @@
+
+  .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #007bff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+  }
+
+  .dropdown-menu button {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.3s ease;
+  }
+  
+  .user-dropdown button:hover {
+    background-color: #0056b3;
+  }
+
+  .dropdown-menu button:hover {
+    background-color: #0056b3;
+  }

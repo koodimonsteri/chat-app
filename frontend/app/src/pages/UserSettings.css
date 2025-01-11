@@ -1,0 +1,106 @@
+.user-settings-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: 100vh;
+    background-color: #f0f0f0;
+    padding: 20px;
+  }
+  
+  .user-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 800px;
+    background-color: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .user-settings-header h1 {
+    margin: 0;
+    font-size: 24px;
+    text-align: center;
+  }
+  
+  .user-settings-content {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 800px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .user-info {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  
+  .user-info-row {
+    display: contents;
+  }
+  
+  /* Labels for user info (first column) */
+  .label {
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  /* Values for user info (second column) */
+  .value {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+  }
+  
+  /* Buttons container (third column) */
+  .button-container {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+  }
+    
+  .user-info-row button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 5px 10px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .user-info-row button:hover {
+    background-color: #0056b3;
+  }
+  
+  .chat-dashboard-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .chat-dashboard-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 200px;
+  }
+  
+  .chat-dashboard-btn:hover {
+    background-color: #218838;
+  }
