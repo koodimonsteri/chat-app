@@ -5,7 +5,7 @@ Created REST API backend.\
 Routes:\
 /auth with /register and /login\
 /chat to manage chats\
-/user to manage users
+/user to manage users\
 /websocket WIP
 
 React frontend to register/login\
