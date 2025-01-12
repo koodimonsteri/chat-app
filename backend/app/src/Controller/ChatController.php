@@ -43,6 +43,10 @@ class ChatController extends AbstractController
         if ($guid) {
             $user = $this->security->getUser();
             
+            if (!$user) {
+                return new JsonResponse(['error' => 'User not found'], 403); 
+            }
+
             $userChat = $this->userChatRepository->findOneByUserAndChatGuid($user, $guid);
             if (!$userChat) {
                 return new JsonResponse(['error' => 'Chat not found or access denied'], 403);

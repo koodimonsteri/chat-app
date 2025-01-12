@@ -23,6 +23,9 @@ docker-compose run --rm backend composer create-project symfony/skeleton .
 run server with command:
 docker-compose exec backend php -S 0.0.0.0:8000 -t public
 
+run websocket:
+docker-compose exec backend php bin/console app:websocket-server
+
 install api:
 docker-compose exec backend composer require api
 
@@ -34,6 +37,9 @@ docker-compose exec backend composer require symfony/serializer-pack
 
 security core for password hashing:
 docker-compose exec backend composer require symfony/security-core
+
+websocket package:
+docker-compose exec backend composer require cboden/ratchet
 
 maker bundle:
 docker-compose exec backend composer require --dev symfony/maker-bundle
@@ -124,3 +130,5 @@ docker-compose exec frontend npm audit --production
 
 install new npm packages:
 docker-compose exec frontend npm install react-router-dom
+
+

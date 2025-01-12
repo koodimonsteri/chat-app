@@ -6,9 +6,12 @@ Routes:\
 /auth with /register and /login\
 /chat to manage chats\
 /user to manage users
+/websocket WIP
 
 React frontend to register/login\
-Dashboard to manage chats WIP
+Dashboard to manage chats\
+Chat rooms to chat with other users WIP
+
 
 Project is set up so that you can just build it with docker.\
 rename .env.example to .env in project root\

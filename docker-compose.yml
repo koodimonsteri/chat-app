@@ -22,10 +22,12 @@ services:
     container_name: chat_backend
     volumes:
       - ./backend/app:/var/www/html
+      - tmp_volume:/tmp # to persist the .setup_done
       #- ./backend/config/jwt:/var/www/html/config/jwt
     working_dir: /var/www/html
     ports:
-      - "8000:8000"
+      - "8000:8000" # api
+      - "9090:9090" # websocket
     networks:
       - chat_network
     environment:
@@ -37,8 +39,8 @@ services:
       - APP_ENV=dev
     depends_on:
       - chat_db
-    command: php-fpm
-    
+    #command: php-fpm
+
   frontend:
     container_name: chat_frontend
     build:
@@ -72,3 +74,4 @@ networks:
 
 volumes:
   chat_db_data:
+  tmp_volume:

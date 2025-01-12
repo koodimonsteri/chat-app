@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import UserDropdown from '../components/UserDropdown';
+import HeaderBar from '../components/HeaderBar';
 import './UserSettings.css';
 import { fetchCurrentUser } from '../api';
 import { useNavigate } from 'react-router-dom';
@@ -39,19 +39,26 @@ const UserSettings = () => {
     navigate('/dashboard');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('jwt_token');
+    navigate('/');
+  };
+
+  const handleNavigation = (path) => {
+    navigate(path);  // Navigate to the given path
+  };
+
   return (
     <div className="user-settings-page">
-      <div className="user-settings-header">
-        <h1>User Settings</h1>
-
-        <div className="chat-dashboard-btn-container">
-          <button className="chat-dashboard-btn" onClick={handleGoToDashboard}>
-            Chat Dashboard
-          </button>
-        </div>
-
-        <UserDropdown navigate={navigate} />
-      </div>
+      <HeaderBar
+        title="User Settings"
+        currentUser={{ id: 1, name: 'John Doe' }}  // Replace with actual current user data
+        onSettings={() => {}}
+        onLogout={handleLogout}
+        onDashboard={handleGoToDashboard}
+        onClose={() => {}}
+        onNavigate={handleNavigation}
+      />
 
       <div className="user-settings-content">
         <div className="user-info">

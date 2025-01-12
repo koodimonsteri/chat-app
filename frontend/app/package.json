@@ -7,6 +7,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-router-dom": "^7.1.1",
+    "websocket": "^1.0.35",
     "yup": "^1.6.1"
   },
   "devDependencies": {

@@ -9,6 +9,7 @@
         "ext-iconv": "*",
         "api-platform/doctrine-orm": "^3.4",
         "api-platform/symfony": "^3.4",
+        "cboden/ratchet": "*",
         "doctrine/dbal": "^3",
         "doctrine/doctrine-bundle": "^2.13",
         "doctrine/doctrine-migrations-bundle": "^3.3",

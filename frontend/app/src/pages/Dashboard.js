@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import './Dashboard.css';
 import Spinner from '../components/Spinner';
-import UserDropdown from '../components/UserDropdown';
+import HeaderBar from '../components/HeaderBar';
 
 import { fetchCurrentUser, createChat, fetchMyChats, fetchPublicChats } from '../api';
 
@@ -32,7 +32,6 @@ const Dashboard = () => {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   const navigate = useNavigate();
-  const location = useLocation()
 
   const handleCreateFormInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -50,11 +49,6 @@ const Dashboard = () => {
       window.removeEventListener('popstate', handleRouteChange);
     };
   }, []);
-
-  const handleSettings = () => {
-    console.log('Redirect to settings page');
-    navigate('/user/settings')
-  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -119,27 +113,15 @@ const Dashboard = () => {
     }
   }, [activeTab]);
 
-  const handleOutsideClick = (event) => {
-    if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
-      setUserDropdownOpen(false);
-    }
+  //const handleOutsideClick = (event) => {
+  //  if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+  //    setUserDropdownOpen(false);
+  //  }
+  //};
+
+  const handleJoinChat = (chat) => {
+    navigate(`/chat/${chat.id}`, { state: { chat } });  // Pass chat as state
   };
-
-  const handleDashboard = () => {
-    navigate('/dashboard');
-  };
-
-  useEffect(() => {
-    if (userDropdownOpen) {
-      document.addEventListener('mousedown', handleOutsideClick);
-    } else {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, [userDropdownOpen]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -182,9 +164,25 @@ const Dashboard = () => {
             ) : publicChats.length > 0 ? (
               <ul>
                 {publicChats.map((chat) => (
-                  <li key={chat.id}>
-                    <p><strong>{chat.name}</strong></p>
-                    <p>{chat.is_private ? 'Private' : 'Public'}</p>
+                  <li key={chat.id} className="chat-item">
+                    <div
+                      className="chat-summary"
+                      onClick={() => toggleChatExpand(chat.id)}
+                    >
+                      <p><strong>{chat.name}</strong></p>
+                      <p>{chat.is_private ? 'Private' : 'Public'}</p>
+                    </div>
+                    {expandedChat === chat.id && (
+                      <div className="chat-details">
+                        <p><strong>Owner:</strong> {chat.chat_owner.username}</p>
+                        <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
+                        <div className="chat-actions">
+                          <button className="join-button" onClick={() => handleJoinChat(chat.id)}>
+                            Join
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -216,7 +214,9 @@ const Dashboard = () => {
                         <p><strong>Owner:</strong> {chat.chat_owner.username}</p>
                         <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
                         <div className="chat-actions">
-                          <button className="join-button">Join</button>
+                          <button className="join-button" onClick={() => handleJoinChat(chat)}>
+                            Join
+                          </button>
                         </div>
                       </div>
                     )}
@@ -233,36 +233,23 @@ const Dashboard = () => {
     }
   };
 
-  const handleGoToDashboard = () => {
-    if (location.pathname !== '/dashboard') {
-      navigate('/dashboard');
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('jwt_token');
     navigate('/');
   };
 
+  const handleNavigation = (path) => {
+    navigate(path);  // Navigate to the given path
+  };
+
   return (
     <div className="dashboard-page">
-      <div className="dashboard-header ref={userDropdownRef}">
-        <h1>Dashboard</h1>
-        <div className="chat-dashboard-btn-container">
-          <button className="chat-dashboard-btn">
-            Chat Dashboard
-          </button>
-        </div>
-        <UserDropdown
-          ref={userDropdownRef}
-          currentUser={currentUser}
-          onSettings={handleSettings}
-          onLogout={handleLogout}
-          onDashboard={handleDashboard}
-          showDashboardButton={currentPath === '/user/settings'}
-          onClose={() => setUserDropdownOpen(false)} 
-        />
-      </div>
+      <HeaderBar
+        title="Dashboard"
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onNavigate={handleNavigation}
+      />
       <div className="dashboard-nav">
         <button
           className={activeTab === 'create' ? 'active' : ''}

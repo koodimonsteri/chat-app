@@ -40,4 +40,6 @@ fi
 echo "Clearing cache..."
 php bin/console cache:clear --env=$APP_ENV
 
-exec "$@"
+#exec "$@"
+php-fpm # &
+#php /var/www/html/bin/console app:websocket-server

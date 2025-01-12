@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import './UserDropdown.css';
 
-const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onDashboard, showDashboardButton }, ref) => { 
+const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onNavigate}, ref) => { 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -29,7 +29,7 @@ const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onDa
   }, [dropdownOpen]);
 
   return (
-    <div className="user-dropdown" ref={ref}> {/* Forward the ref here */}
+    <div className="user-dropdown" ref={ref}>
       <button className="dropdown-toggle" onClick={toggleDropdown}>
         {currentUser?.username || 'User'}
       </button>

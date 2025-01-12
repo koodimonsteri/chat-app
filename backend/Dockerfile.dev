@@ -1,25 +1,24 @@
 FROM php:8.1-fpm
 
 # Install dependencies
+# netcat-openbsd for checking when the database is ready
+# libevent-dev for Ratchet
 RUN apt-get update && apt-get install -y \
     curl \
-    git \
     unzip \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
     openssl \
     netcat-openbsd \
+    libevent-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PDO extensions and GD (for images)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install gd pdo pdo_mysql
 
-# Install Composer globally
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-# Install Symfony CLI
 RUN curl -sS https://get.symfony.com/cli/installer | bash
 RUN mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
 
@@ -27,14 +26,10 @@ WORKDIR /var/www/html
 
 COPY ./app .
 
-# Install Symfony dependencies using Composer
 RUN composer install --no-interaction --optimize-autoloader
+RUN composer --version
 
-# Copy the entrypoint script to the container
 COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Set the entrypoint to our custom script
 ENTRYPOINT ["docker-entrypoint.sh"]
-
-RUN composer --version
