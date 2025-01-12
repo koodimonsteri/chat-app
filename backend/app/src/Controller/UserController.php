@@ -43,7 +43,7 @@ class UserController extends AbstractController
         if (empty($data['username']) || empty($data['email'])) {
             return $this->json([
                 'message' => 'Missing required fields: username, email',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
         
         $dto = new UserUpdateDto();
@@ -55,19 +55,19 @@ class UserController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if ($userRepository->findOneBy(['email' => $dto->email])) {
             return $this->json([
                 'message' => 'Email is already registered.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if ($userRepository->findOneBy(['username' => $dto->username])) {
             return $this->json([
                 'message' => 'Username is already taken.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
 

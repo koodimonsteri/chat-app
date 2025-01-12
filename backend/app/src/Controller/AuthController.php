@@ -27,7 +27,7 @@ class AuthController extends AbstractController
         if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
             return $this->json([
                 'message' => 'Missing required fields: username, email, or password',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         $dto = new RegisterUserDto();
@@ -40,19 +40,19 @@ class AuthController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if ($userRepository->findOneBy(['email' => $dto->email])) {
             return $this->json([
                 'message' => 'Email is already registered.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if ($userRepository->findOneBy(['username' => $dto->username])) {
             return $this->json([
                 'message' => 'Username is already taken.',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         $user = new User();
@@ -68,7 +68,7 @@ class AuthController extends AbstractController
 
         return $this->json([
             'message' => 'User created successfully!',
-        ], JsonResponse::HTTP_CREATED);
+        ], 201);
     }
 
     #[Route('/login', name: 'login', methods: ['POST'])]
@@ -79,7 +79,7 @@ class AuthController extends AbstractController
         if (empty($data['username']) || empty($data['password'])) {
             return $this->json([
                 'message' => 'Missing required fields: username or password',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
         
         $dto = new LoginDto();
@@ -91,21 +91,21 @@ class AuthController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         $user = $userRepository->findOneBy(['username' => $dto->username]);
         if (!$user) {
             return $this->json([
                 'message' => 'Invalid username.',
-            ], JsonResponse::HTTP_UNAUTHORIZED);
+            ], 401);
         }
 
         // Verify the password against the stored hashed password
         if (!$passwordHasher->isPasswordValid($user, $dto->password)) {
             return $this->json([
                 'message' => 'Invalid credentials.',
-            ], JsonResponse::HTTP_UNAUTHORIZED);
+            ], 401);
         }
         
         $token = $JWTManager->create($user);
@@ -113,7 +113,7 @@ class AuthController extends AbstractController
         return $this->json([
             'message' => 'Login successful.',
             'token' => $token,
-        ], JsonResponse::HTTP_OK);
+        ], 200);
     }
 
     #[Route('/logout', name: 'logout', methods: ['POST'])]

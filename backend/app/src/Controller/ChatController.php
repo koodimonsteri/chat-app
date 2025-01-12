@@ -93,7 +93,7 @@ class ChatController extends AbstractController
         if (empty($data['name']) || !isset($data['is_private'])) {
             return $this->json([
                 'message' => 'Missing required fields: name or is_private',
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
         
         $dto = new CreateChatDto();
@@ -105,7 +105,7 @@ class ChatController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         $chat = new Chat();
@@ -177,7 +177,7 @@ class ChatController extends AbstractController
         
         $data = json_decode($request->getContent(), true);
         if (empty($data['name']) && !isset($data['is_private'])) {
-            return new JsonResponse(['message' => 'At least one of the fields (name, is_private) must be provided.'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['message' => 'At least one of the fields (name, is_private) must be provided.'], 400);
         }
 
         $dto = new CreateChatDto();
@@ -194,7 +194,7 @@ class ChatController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         if (isset($dto->name)) {
@@ -266,7 +266,7 @@ class ChatController extends AbstractController
             return $this->json([
                 'message' => 'Validation failed',
                 'errors' => (string) $violations,
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], 400);
         }
 
         $invitedUser = null;
@@ -319,7 +319,7 @@ class ChatController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $username = $data['username'] ?? null;
         if (!$username) {
-            return new JsonResponse(['error' => 'Username is required'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'Username is required'], 400);
         }
 
         $userToRemove = $userRepository->findOneBy(['username' => $username]);
