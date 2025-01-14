@@ -9,6 +9,7 @@ use Ratchet\ConnectionInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 
+
 class ChatServer implements MessageComponentInterface
 {
     private $clients;
@@ -22,70 +23,54 @@ class ChatServer implements MessageComponentInterface
         $this->jwtManager = $jwtManager;
     }
 
+  
     public function onOpen(ConnectionInterface $conn)
     {
-        $uri = $conn->httpRequest->getUri();
-        echo "Connecting to webserver\n";
-        echo $uri;
-        preg_match('/\/chat\/(\d+)\/connect/', $uri, $matches);
+        echo "New connection {$conn->resourceId}\n";
+    
+        $headers = $conn->httpRequest->getHeaders();
+        echo "Headers: " . print_r($headers, true) . "\n";
+    }
 
-        if (empty($matches)) {
-            echo "Invalid WebSocket URL format\n";
-            $conn->send(json_encode(['error' => 'Invalid URL format']));
-            $conn->close();
-            return;
-        }
+    public function onMessage(ConnectionInterface $from, $msg)
+    {   
+        echo "New message!\n";
+        $data = json_decode($msg, true);
 
-        $chatId = $matches[1];
-
-        $token = $this->getQueryParam($conn, 'token');
-
-        if ($token) {
+        if (isset($data['token'])) {
             try {
-                $decoded = $this->jwtManager->decodeFromJsonWebToken($token);
-                
-                $conn->user = $decoded;
-                $conn->chatId = $chatId;
+                $decoded = $this->jwtManager->decode($data['token']);
+                if (!$decoded) {
+                    $from->send("Invalid token.");
+                    $from->close();
+                    return;
+                }
 
-                echo "User {$conn->user['username']} connected to chat {$chatId}\n";
+                $from->user = $decoded;
+                $from->send("Authentication successful.");
+            } catch (ExpiredException $e) {
+                $from->send("Token has expired.");
+                $from->close();
+                return;
             } catch (\Exception $e) {
-                echo "Invalid JWT token\n";
-                $conn->send(json_encode(['error' => 'Unauthorized']));
-                $conn->close();
+                $from->send("Authentication failed: " . $e->getMessage());
+                $from->close();
                 return;
             }
-        } else {
-            echo "No token provided\n";
-            $conn->send(json_encode(['error' => 'Unauthorized']));
-            $conn->close();
-            return;
         }
 
-        // Store the connection for broadcasting messages
-        $this->clients[$conn->resourceId] = $conn;
+        if (isset($data['message'])) {
+            $this->sendMessageToAll($data['message']);
+        }
     }
 
     public function onClose(ConnectionInterface $conn)
     {
-        unset($this->clients[$conn->resourceId]);
-    }
-
-    public function onMessage(ConnectionInterface $from, $msg)
-    {
-        // Handle incoming messages and broadcast them to the chat room
+        echo "Connection {$conn->resourceId} has disconnected\n";
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
-        echo "Error: {$e->getMessage()}\n";
-        $conn->close();
-    }
-
-    private function getQueryParam(ConnectionInterface $conn, $key)
-    {
-        $url = $conn->httpRequest->getUri();
-        $query = parse_url($url, PHP_URL_QUERY);
-        parse_str($query, $params);
-        return isset($params[$key]) ? $params[$key] : null;
+        echo "An error occurred: {$e->getMessage()}\n";
     }
 }

@@ -5,12 +5,28 @@ if [ ! -f /tmp/.setup_done ]; then
     echo "Running initial setup..."
 
     # Check if JWT keys exist in /config/jwt; if not, generate them
-    if [ ! -f /var/www/html/config/jwt/private.key ]; then
+    if [ ! -f "$JWT_SECRET_KEY_PATH" ]; then
         echo "JWT private and public keys not found. Generating..."
+
         mkdir -p /var/www/html/config/jwt
-        openssl genpkey -out /var/www/html/config/jwt/private.pem -algorithm RSA -pkeyopt rsa_keygen_bits:4096
-        openssl rsa -pubout -in /var/www/html/config/jwt/private.pem -out /var/www/html/config/jwt/public.pem
+        
+        openssl genpkey -out "$JWT_SECRET_KEY_PATH" -algorithm RSA -pkeyopt rsa_keygen_bits:4096
+        openssl rsa -pubout -in "$JWT_SECRET_KEY_PATH" -out "$JWT_PUBLIC_KEY_PATH"
+        chmod 644 "$JWT_SECRET_KEY_PATH"
+        chmod 644 "$JWT_PUBLIC_KEY_PATH"
+    
         echo "JWT keys generated successfully."
+    fi
+
+    if [ ! -f /var/www/html/config/ssl/private.key ]; then
+        echo "SSL certificates not found. Generating..."
+
+        mkdir -p /var/www/html/config/ssl
+        
+        openssl genpkey -algorithm RSA -out /var/www/html/config/ssl/private.key -pkeyopt rsa_keygen_bits:4096
+        openssl req -new -key /var/www/html/config/ssl/private.key -out /var/www/html/config/ssl/certificate.csr -subj "/C=US/ST=California/L=San Francisco/O=MyApp/CN=localhost"
+        openssl x509 -req -days 365 -in /var/www/html/config/ssl/certificate.csr -signkey /var/www/html/config/ssl/private.key -out /var/www/html/config/ssl/certificate.crt
+        echo "SSL certificates generated successfully."
     fi
 
     echo "Waiting for MySQL to be ready..."

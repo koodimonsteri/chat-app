@@ -69,8 +69,31 @@ def remove_user_from_chat(auth_headers: Dict, chat_id, user_data):
     res = requests.post(chat_url, json=user_data, headers=auth_headers).json()
     return res
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+def websocket():
+    import asyncio
+    import websockets
+
+    async def connect_to_websocket():
+        uri = "ws://localhost:9090/chat/connect"  # Replace with your WebSocket server URL
+        async with websockets.connect(uri) as websocket:
+            print("Connected to WebSocket server")
+
+            # Send a message
+            await websocket.send("Hello, WebSocket!")
+            print("Message sent")
+
+            # Receive a response
+            response = await websocket.recv()
+            print(f"Response from server: {response}")
+
+    asyncio.run(connect_to_websocket())
+
 
 def main():
+    websocket()
+    exit(1)
 
     user1 = {
         'username': 'juhuuuuuu1',

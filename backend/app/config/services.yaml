@@ -20,8 +20,13 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\WebSocket\ChatServer:
-        arguments:
-            $entityManager: '@doctrine.orm.entity_manager'
+    App\WebSocket\Chat:
+    
+    App\Command\:
+        resource: '../src/Command'
+        tags: ['console.command']
+        #arguments:
+        #    $entityManager: '@doctrine.orm.entity_manager'
+        #    $jwtManager: '@lexik_jwt_authentication.jwt_manager'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

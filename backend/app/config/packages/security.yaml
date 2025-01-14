@@ -24,10 +24,6 @@ security:
             pattern:  ^/api/auth/register
             stateless: true
         
-        #websocket:
-        #    pattern: ^/chat/.+/connect
-        #    security: false
-        
         api:
             pattern:   ^/api
             stateless: true
@@ -47,13 +43,7 @@ security:
 
             # https://symfony.com/doc/current/security/impersonating_user.html
             # switch_user: true
-        #login:
-        #    pattern: ^/api/login
-        #    security: false
 
-        #register:
-        #    pattern: ^/api/register
-        #    security: false
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:

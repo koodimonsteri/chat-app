@@ -36,7 +36,9 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - APP_ENV=dev
+      - APP_ENV=${APP_ENV}
+      - JWT_SECRET_KEY_PATH=/var/www/html/config/jwt/private.pem
+      - JWT_PUBLIC_KEY_PATH=/var/www/html/config/jwt/public.pem
     depends_on:
       - chat_db
     #command: php-fpm
