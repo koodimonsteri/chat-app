@@ -7,7 +7,7 @@ import HeaderBar from '../components/HeaderBar';
 
 import { fetchCurrentUser, createChat, fetchMyChats, fetchPublicChats } from '../api';
 
-const Dashboard = () => {
+const Dashboard = ({ currentUser, onLogout }) => {
   const [activeTab, setActiveTab] = useState('myChats'); // Default tab is "My Chats"
   const [createChatFormData, setCreateChatFormData] = useState({
     name: '',
@@ -25,11 +25,9 @@ const Dashboard = () => {
   const [loadingPublicChats, setLoadingPublicChats] = useState(false);
   const [publicChatError, setPublicChatError] = useState('');
 
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const userDropdownRef = useRef(null);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  //const [currentUser, setCurrentUser] = useState(null);
+  //const [loadingUser, setLoadingUser] = useState(true);
+  //const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   const navigate = useNavigate();
 
@@ -41,28 +39,27 @@ const Dashboard = () => {
     });
   };
 
-  useEffect(() => {
-    const handleRouteChange = () => setCurrentPath(window.location.pathname);
-    window.addEventListener('popstate', handleRouteChange);
+  //useEffect(() => {
+  //  const handleRouteChange = () => setCurrentPath(window.location.pathname);
+  //  window.addEventListener('popstate', handleRouteChange);
+  //  return () => {
+  //    window.removeEventListener('popstate', handleRouteChange);
+  //  };
+  //}, []);
 
-    return () => {
-      window.removeEventListener('popstate', handleRouteChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const result = await fetchCurrentUser();
-      if (result.error === 'JWT expired') {
-        localStorage.removeItem('jwt_token');
-        navigate('/');
-      } else {
-        setCurrentUser(result);
-      }
-      setLoadingUser(false);
-    };
-    fetchUserData();
-  }, [navigate]);
+  //useEffect(() => {
+  //  const fetchUserData = async () => {
+  //    const result = await fetchCurrentUser();
+  //    if (result.error === 'JWT expired') {
+  //      localStorage.removeItem('jwt_token');
+  //      navigate('/');
+  //    } else {
+  //      setCurrentUser(result);
+  //    }
+  //    setLoadingUser(false);
+  //  };
+  //  fetchUserData();
+  //}, [navigate]);
 
   const handleCreateFormSubmit = async (e) => {
     e.preventDefault();
@@ -113,14 +110,8 @@ const Dashboard = () => {
     }
   }, [activeTab]);
 
-  //const handleOutsideClick = (event) => {
-  //  if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
-  //    setUserDropdownOpen(false);
-  //  }
-  //};
-
   const handleJoinChat = (chat) => {
-    navigate(`/chat/${chat.id}`, { state: { chat } });  // Pass chat as state
+    navigate(`/chat/${chat.id}`, { state: { chat } });
   };
 
   const renderContent = () => {
@@ -233,11 +224,6 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('jwt_token');
-    navigate('/');
-  };
-
   const handleNavigation = (path) => {
     navigate(path);  // Navigate to the given path
   };
@@ -247,7 +233,7 @@ const Dashboard = () => {
       <HeaderBar
         title="Dashboard"
         currentUser={currentUser}
-        onLogout={handleLogout}
+        onLogout={onLogout}
         onNavigate={handleNavigation}
       />
       <div className="dashboard-nav">

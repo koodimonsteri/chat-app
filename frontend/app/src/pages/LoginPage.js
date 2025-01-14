@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './RegisterPage.css';
 
-const LoginPage = () => {
+const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+
+  const token = localStorage.getItem('jwt_token');
+  if (token) {
+    navigate('/dashboard')
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -30,20 +35,14 @@ const LoginPage = () => {
         }),
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('jwt_token', data.token);
-        setSuccess(true);
-        console.log('Login successful:', data);
-        navigate('/dashboard');
-      } else {
-        setError(data.message || 'Login failed');
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
       }
+
+      const data = await response.json();
+      onLogin(data.token);
     } catch (error) {
-      setError('An error occurred. Please try again later.');
-    } finally {
-      setLoading(false);
+      setError('Login failed. Please check your credentials.');
     }
   };
 

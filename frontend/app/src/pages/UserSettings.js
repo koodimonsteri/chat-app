@@ -5,44 +5,39 @@ import { fetchCurrentUser } from '../api';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 
-const UserSettings = () => {
+const UserSettings = ({ currentUser, onLogout }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchUserData = async () => {
-        try {
-          const result = await fetchCurrentUser();
-          if (isMounted) {
-            setUserData(result);
-            setLoading(false);
-          }
-        } catch (err) {
-          if (isMounted) {
-            setError('Failed to load user data');
-            setLoading(false);
-          }
-        }
-      };
-      fetchUserData()
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  //useEffect(() => {
+  //  let isMounted = true;
+//
+  //  const fetchUserData = async () => {
+  //      try {
+  //        const result = await fetchCurrentUser();
+  //        if (isMounted) {
+  //          setUserData(result);
+  //          setLoading(false);
+  //        }
+  //      } catch (err) {
+  //        if (isMounted) {
+  //          setError('Failed to load user data');
+  //          setLoading(false);
+  //        }
+  //      }
+  //    };
+  //    fetchUserData()
+  //  return () => {
+  //    isMounted = false;
+  //  };
+  //}, []);
 
   const handleGoToDashboard = () => {
     navigate('/dashboard');
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('jwt_token');
-    navigate('/');
-  };
 
   const handleNavigation = (path) => {
     navigate(path);  // Navigate to the given path
@@ -52,9 +47,9 @@ const UserSettings = () => {
     <div className="user-settings-page">
       <HeaderBar
         title="User Settings"
-        currentUser={{ id: 1, name: 'John Doe' }}  // Replace with actual current user data
+        currentUser={currentUser}
         onSettings={() => {}}
-        onLogout={handleLogout}
+        onLogout={onLogout}
         onDashboard={handleGoToDashboard}
         onClose={() => {}}
         onNavigate={handleNavigation}

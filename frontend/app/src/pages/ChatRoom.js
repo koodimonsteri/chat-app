@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import HeaderBar from '../components/HeaderBar';
 import './ChatRoom.css'
+import { fetchCurrentUser } from '../api';
 
 
 const ChatRoom = ({ currentUser, onLogout }) => {
@@ -11,28 +12,47 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const wsRef = useRef(null);
   const { chatId } = useParams();
   const location = useLocation();
+  const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState(location.state?.chat || null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (location.state?.chat){
-      console.log('set chat')
-      setChat(location.state.chat)
+    if (location.state?.chat) {
+      setChat(location.state.chat);
     } else {
-      //TODO fetch
+      // Fetch chat data or handle cases where it's not available
+      // For example:
+      // fetchChat(chatId).then(fetchedChat => setChat(fetchedChat));
     }
-    const token = `Bearer ${localStorage.getItem('jwt_token')}`
-    //const socket = new WebSocket(`ws://localhost:8080/chat/${chatId}/connect?token=${token}`);
-    const socket = new WebSocket(`ws://localhost:9090`);
+    if (!currentUser) {
+      currentUser = fetchCurrentUser()
+    }
+    if (currentUser && chat) {
+      setLoading(false);
+    }
+  }, [location.state, currentUser, chatId, chat]);
+  
+  useEffect(() => {
+    console.log(currentUser)
+    console.log(chat)
+    if (!currentUser || !chat) return;
+    const token = `Bearer ${localStorage.getItem('jwt_token')}`;
+    const socketUrl = `ws://127.0.0.1:9090`;
+    const socket = new WebSocket(socketUrl);
 
     socket.onopen = () => {
-      console.log('WebSocket connected');
-      socket.send(JSON.stringify({ type: 'join', chatId: chat.id, userId: currentUser.id }));
+      const joinMessage = {
+        type: 'join',
+        chatId: chat.id,  // Example chatId, adjust as needed
+        userId: currentUser.id, // Pass the currentUser ID
+        token: token, // Include the JWT token in the first message
+      };
+      socket.send(JSON.stringify(joinMessage));
     };
 
     socket.onerror = (error) => {
       console.error('WebSocket Error:', error);
-    }; 
+    };
 
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
@@ -51,7 +71,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
         wsRef.current.close();
       }
     };
-  }, [location.state, chatId, currentUser]);
+  }, [currentUser, chat]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
