@@ -11,29 +11,6 @@ const UserSettings = ({ currentUser, onLogout }) => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  //useEffect(() => {
-  //  let isMounted = true;
-//
-  //  const fetchUserData = async () => {
-  //      try {
-  //        const result = await fetchCurrentUser();
-  //        if (isMounted) {
-  //          setUserData(result);
-  //          setLoading(false);
-  //        }
-  //      } catch (err) {
-  //        if (isMounted) {
-  //          setError('Failed to load user data');
-  //          setLoading(false);
-  //        }
-  //      }
-  //    };
-  //    fetchUserData()
-  //  return () => {
-  //    isMounted = false;
-  //  };
-  //}, []);
-
   const handleGoToDashboard = () => {
     navigate('/dashboard');
   };

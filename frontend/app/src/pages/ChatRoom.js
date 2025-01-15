@@ -21,8 +21,6 @@ const ChatRoom = ({ currentUser, onLogout }) => {
       setChat(location.state.chat);
     } else {
       // Fetch chat data or handle cases where it's not available
-      // For example:
-      // fetchChat(chatId).then(fetchedChat => setChat(fetchedChat));
     }
     if (!currentUser) {
       currentUser = fetchCurrentUser()

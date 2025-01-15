@@ -20,7 +20,8 @@ docker-compose up --build -d
 install symfony skeleton:
 docker-compose run --rm backend composer create-project symfony/skeleton .
 
-run server with command:
+run server with either command:
+docker-compose exec backend symfony serve --listen-ip=0.0.0.0 --port=8000
 docker-compose exec backend php -S 0.0.0.0:8000 -t public
 
 run websocket:

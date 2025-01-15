@@ -5,7 +5,7 @@ import './Dashboard.css';
 import Spinner from '../components/Spinner';
 import HeaderBar from '../components/HeaderBar';
 
-import { fetchCurrentUser, createChat, fetchMyChats, fetchPublicChats } from '../api';
+import { createChat, fetchMyChats, fetchPublicChats } from '../api';
 
 const Dashboard = ({ currentUser, onLogout }) => {
   const [activeTab, setActiveTab] = useState('myChats'); // Default tab is "My Chats"
@@ -25,10 +25,6 @@ const Dashboard = ({ currentUser, onLogout }) => {
   const [loadingPublicChats, setLoadingPublicChats] = useState(false);
   const [publicChatError, setPublicChatError] = useState('');
 
-  //const [currentUser, setCurrentUser] = useState(null);
-  //const [loadingUser, setLoadingUser] = useState(true);
-  //const [currentPath, setCurrentPath] = useState(window.location.pathname);
-
   const navigate = useNavigate();
 
   const handleCreateFormInputChange = (e) => {
@@ -38,28 +34,6 @@ const Dashboard = ({ currentUser, onLogout }) => {
       [name]: type === 'checkbox' ? checked : value,
     });
   };
-
-  //useEffect(() => {
-  //  const handleRouteChange = () => setCurrentPath(window.location.pathname);
-  //  window.addEventListener('popstate', handleRouteChange);
-  //  return () => {
-  //    window.removeEventListener('popstate', handleRouteChange);
-  //  };
-  //}, []);
-
-  //useEffect(() => {
-  //  const fetchUserData = async () => {
-  //    const result = await fetchCurrentUser();
-  //    if (result.error === 'JWT expired') {
-  //      localStorage.removeItem('jwt_token');
-  //      navigate('/');
-  //    } else {
-  //      setCurrentUser(result);
-  //    }
-  //    setLoadingUser(false);
-  //  };
-  //  fetchUserData();
-  //}, [navigate]);
 
   const handleCreateFormSubmit = async (e) => {
     e.preventDefault();
@@ -225,7 +199,7 @@ const Dashboard = ({ currentUser, onLogout }) => {
   };
 
   const handleNavigation = (path) => {
-    navigate(path);  // Navigate to the given path
+    navigate(path);
   };
 
   return (

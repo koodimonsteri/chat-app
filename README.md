@@ -8,6 +8,10 @@ Routes:\
 /user to manage users\
 /websocket for messaging WIP
 
+Rewriting backend with python fastapi.\
+Nice docker setup\
+/auth routes implemented
+
 React frontend to register/login\
 Dashboard to manage chats\
 User settings to manage user data\

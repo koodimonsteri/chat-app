@@ -2,67 +2,63 @@ version: '3.8'
 
 services:
 
-  chat_db:
-    image: mysql:8.0
-    container_name: chat_db
+  postgres_db: # This has to match to DB_HOST in .env!!
+    image: postgres:15
+    container_name: postgres_chat_db
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+
+      # This POSTGRES_DB creates the database automatically!!
+      POSTGRES_DB: chat_db
+    ports:
+      - "5432:5432"
     volumes:
-      - chat_db_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - chat_network
 
-  backend:
+  python_backend:
     build: 
-      context: ./backend
-      dockerfile: Dockerfile.dev
-    container_name: chat_backend
+      context: ./python_backend
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    container_name: chat_backend_python
     volumes:
-      - ./backend/app:/var/www/html
+      - ./python_backend/app:/app
+      #- ./python_backend/chat_db_migrations:/chat_db_migrations
+      - jwt_keys:/etc/keys/jwt
       - tmp_volume:/tmp # to persist the .setup_done
-      #- ./backend/config/jwt:/var/www/html/config/jwt
-    working_dir: /var/www/html
     ports:
       - "8000:8000" # api
-      - "9090:9090" # websocket
+      #- "8080:8080" # websocket
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     networks:
       - chat_network
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-      - DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
-      - APP_ENV=${APP_ENV}
-      - JWT_SECRET_KEY_PATH=/var/www/html/config/jwt/private.pem
-      - JWT_PUBLIC_KEY_PATH=/var/www/html/config/jwt/public.pem
     depends_on:
-      - chat_db
-    #command: php-fpm
+      - postgres_db
 
-  frontend:
-    container_name: chat_frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend/app:/app
-      - /app/node_modules
-    networks:
-      - chat_network
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_API_URL=${REACT_APP_API_URL}
-      - WATCHPACK_POLLING=true
-      - FAST_REFRESH=false
-      - WDS_SOCKET_PORT=3000
-    depends_on:
-      - backend
+  #frontend:
+  #  container_name: chat_frontend
+  #  build:
+  #    context: ./frontend
+  #    dockerfile: Dockerfile
+  #  ports:
+  #    - "3000:3000"
+  #  volumes:
+  #    - ./frontend/app:/app
+  #    - /app/node_modules
+  #  networks:
+  #    - chat_network
+  #  environment:
+  #    - CHOKIDAR_USEPOLLING=true
+  #    - REACT_APP_API_URL=${REACT_APP_API_URL}
+  #    - WATCHPACK_POLLING=true
+  #    - FAST_REFRESH=false
+  #    - WDS_SOCKET_PORT=3000
+  #  depends_on:
+  #    - backend
     #deploy:
     #  resources:
     #    limits:
@@ -75,5 +71,6 @@ networks:
     driver: bridge
 
 volumes:
-  chat_db_data:
+  postgres_data:
+  jwt_keys:
   tmp_volume:
