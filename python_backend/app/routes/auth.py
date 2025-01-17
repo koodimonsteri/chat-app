@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+import logging
 
 from fastapi import APIRouter
 import jwt
@@ -10,6 +11,8 @@ from crud import user as crud
 from models import User
 from schemas import auth as auth_schema, user as user_schema
 import settings
+
+logger = logging.getLogger('uvicorn')
 
 router = APIRouter(
     prefix='/auth',
@@ -31,14 +34,15 @@ def register(
     user_data: auth_schema.RegisterUser,
     request: Request
 ):
-    existing_user = crud.find_user_by_name(request.state.db, user_data.username)
+    existing_user = crud.get_user_by_name(request.state.db, user_data.username)
     if existing_user:
+
         raise HTTPException(
             status_code=400,
             detail="Username already taken"
         )
 
-    existing_user = crud.find_user_by_email(request.state.db, user_data.username)
+    existing_user = crud.get_user_by_email(request.state.db, user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=400,
@@ -53,10 +57,13 @@ def register(
         pw_hash=hashed_password
     )
 
+    logger.info('Add to db: %s', new_user)
     request.state.db.add(new_user)
+    logger.info('Commit')
     request.state.db.commit()
+    logger.info('Refresh')
     request.state.db.refresh(new_user)
-
+    logger.info('New user: %s', new_user)
     return new_user
 
 
@@ -69,7 +76,7 @@ def login(
     user_data: auth_schema.LoginUser,
     request: Request
 ):
-    existing_user = crud.find_user_by_name(request.state.db, user_data.username)
+    existing_user = crud.get_user_by_name(request.state.db, user_data.username)
     if not existing_user:
         raise HTTPException(
             status_code=401,
@@ -84,7 +91,7 @@ def login(
     
     payload = {
         "sub": existing_user.username,
-        "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=settings.JWT_EXPIRES_SECONDS)  # Token expires in 30 minutes
+        "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=settings.JWT_EXPIRES_SECONDS)
     }
     token = jwt.encode(payload, JWT_PRIVATE_KEY, algorithm=settings.JWT_ALGORITHM)
 

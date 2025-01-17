@@ -40,6 +40,7 @@ const LoginPage = ({ onLogin }) => {
       }
 
       const data = await response.json();
+      console.log('Got token: %s', data)
       onLogin(data.token);
     } catch (error) {
       setError('Login failed. Please check your credentials.');

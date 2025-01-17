@@ -25,12 +25,12 @@ class Chat(Base):
     name = Column(String(255), nullable=False)
     description = Column(TEXT, nullable=True)
     is_private = Column(Boolean, nullable=False, default=True)
+
     chat_owner_id = Column(Integer, ForeignKey('users.id'), nullable=False) 
+    chat_owner: Mapped[User] = relationship(back_populates="own_chats")
 
     created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, default=func.now())
-
-    chat_owner: Mapped[User] = relationship(back_populates="own_chats")
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
     users: Mapped[List[User]] = relationship(
         secondary=user_chat_association, back_populates="chats"
@@ -51,7 +51,7 @@ class User(Base):
     description = Column(TEXT, nullable=True, default='')
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     own_chats: Mapped[List[Chat]] = relationship(back_populates="chat_owner")
 

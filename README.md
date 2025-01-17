@@ -9,8 +9,7 @@ Routes:\
 /websocket for messaging WIP
 
 Rewriting backend with python fastapi.\
-Nice docker setup\
-/auth routes implemented
+Nice docker detup.
 
 React frontend to register/login\
 Dashboard to manage chats\

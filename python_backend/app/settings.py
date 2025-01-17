@@ -1,5 +1,6 @@
 import os
 
+
 DB_USER=os.getenv('DB_USER')
 DB_PASSWORD=os.getenv('DB_PASSWORD')
 DB_HOST=os.getenv('DB_HOST')
@@ -13,3 +14,4 @@ JWT_KEYS_DIR=os.getenv('JWT_KEYS_DIR')
 JWT_ALGORITHM=os.getenv('JWT_ALGORITHM')
 _jwt_expires_seconds = os.getenv('JWT_EXPIRES_SECONDS')
 JWT_EXPIRES_SECONDS = int(_jwt_expires_seconds) if _jwt_expires_seconds.isdigit() else 3600
+

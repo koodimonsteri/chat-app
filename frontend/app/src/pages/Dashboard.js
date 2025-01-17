@@ -8,9 +8,10 @@ import HeaderBar from '../components/HeaderBar';
 import { createChat, fetchMyChats, fetchPublicChats } from '../api';
 
 const Dashboard = ({ currentUser, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('myChats'); // Default tab is "My Chats"
+  const [activeTab, setActiveTab] = useState('myChats');
   const [createChatFormData, setCreateChatFormData] = useState({
     name: '',
+    description: '',
     is_private: true,
   });
   const [createChatFormError, setCreateChatFormError] = useState('');
@@ -102,6 +103,16 @@ const Dashboard = ({ currentUser, onLogout }) => {
                 value={createChatFormData.name}
                 onChange={handleCreateFormInputChange}
                 required
+              />
+            </div>
+            <div className="form-group">
+              <label htmlFor="description">Description:</label>
+              <input
+                type="text"
+                id="description"
+                name="description"
+                value={createChatFormData.description}
+                onChange={handleCreateFormInputChange}
               />
             </div>
             <div className="form-group">

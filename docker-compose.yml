@@ -39,26 +39,26 @@ services:
     depends_on:
       - postgres_db
 
-  #frontend:
-  #  container_name: chat_frontend
-  #  build:
-  #    context: ./frontend
-  #    dockerfile: Dockerfile
-  #  ports:
-  #    - "3000:3000"
-  #  volumes:
-  #    - ./frontend/app:/app
-  #    - /app/node_modules
-  #  networks:
-  #    - chat_network
-  #  environment:
-  #    - CHOKIDAR_USEPOLLING=true
-  #    - REACT_APP_API_URL=${REACT_APP_API_URL}
-  #    - WATCHPACK_POLLING=true
-  #    - FAST_REFRESH=false
-  #    - WDS_SOCKET_PORT=3000
-  #  depends_on:
-  #    - backend
+  frontend:
+    container_name: chat_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/app:/app
+      - /app/node_modules
+    networks:
+      - chat_network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=${REACT_APP_API_URL}
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=false
+      - WDS_SOCKET_PORT=3000
+    depends_on:
+      - python_backend
     #deploy:
     #  resources:
     #    limits:

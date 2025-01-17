@@ -6,18 +6,16 @@ import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 
 const UserSettings = ({ currentUser, onLogout }) => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
+  console.log(currentUser)
   const handleGoToDashboard = () => {
     navigate('/dashboard');
   };
 
-
-  const handleNavigation = (path) => {
-    navigate(path);  // Navigate to the given path
+  const handleNavigation = async (path) => {
+    navigate(path);
   };
 
   return (
@@ -34,38 +32,45 @@ const UserSettings = ({ currentUser, onLogout }) => {
 
       <div className="user-settings-content">
         <div className="user-info">
-          {loading && (
-            <div className="loading-container">
-              <span>Loading user data...</span>
-              <Spinner />
-            </div>
-          )}
-          {error && <div>Error loading user data: {error}</div>}
 
-          {!loading && !error && (
+          {! currentUser && <div className="error">Error loading user data</div>}
+
+          { currentUser && (
             <>
               <div className="user-info-row">
                 <div className="label">ID:</div>
-                <div className="value">{userData.id}</div>
+                <div className="value">{currentUser.id}</div>
                 <div className="button-container"></div>
               </div>
               <div className="user-info-row">
                 <div className="label">Username:</div>
-                <div className="value">{userData.username}</div>
+                <div className="value">{currentUser.username}</div>
                 <div className="button-container">
                   <button onClick={() => alert('Update username')}>Update</button>
                 </div>
               </div>
               <div className="user-info-row">
                 <div className="label">Email:</div>
-                <div className="value">{userData.email}</div>
+                <div className="value">{currentUser.email}</div>
+                <div className="button-container">
+                  <button onClick={() => alert('Update email')}>Update</button>
+                </div>
+              </div>
+              <div className="user-info-row">
+                <div className="label">Description:</div>
+                <div className="value">{currentUser.description}</div>
                 <div className="button-container">
                   <button onClick={() => alert('Update email')}>Update</button>
                 </div>
               </div>
               <div className="user-info-row">
                 <div className="label">Created At:</div>
-                <div className="value">{new Date(userData.created_at).toLocaleString()}</div>
+                <div className="value">{new Date(currentUser.created_at).toLocaleString()}</div>
+                <div className="button-container"></div>
+              </div>
+              <div className="user-info-row">
+                <div className="label">Updated At:</div>
+                <div className="value">{new Date(currentUser.updated_at).toLocaleString()}</div>
                 <div className="button-container"></div>
               </div>
             </>

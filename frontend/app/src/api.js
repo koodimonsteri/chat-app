@@ -8,13 +8,10 @@ const getAuthHeaders = () => ({
 
 export const fetchCurrentUser = async () => {
   try {
-    const response = await fetch(`${apiUrl}/api/user/current`, {
+    const response = await fetch(`${apiUrl}/api/user/me`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
-      if (response.status === 401) {
-        return { error: 'JWT expired' };
-      }
       throw new Error('Failed to fetch current user');
     }
     return await response.json();
@@ -81,4 +78,22 @@ export const fetchPublicChats = async () => {
     console.error('Error fetching public chats:', error);
     return { error: error.message };
   }
+};
+
+
+export const apiLogin = async (username, password) => {
+  try {
+    const response = await fetch(`${apiUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      username,
+      password,
+      }),
+    });
+  } catch (error) {
+    console.log("error", error)
+  };
 };
