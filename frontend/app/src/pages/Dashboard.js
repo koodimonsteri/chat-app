@@ -98,6 +98,7 @@ const Dashboard = ({ currentUser, onLogout }) => {
     } else if (activeTab === 'public') {
       loadPublicChatsData();
     }
+    setExpandedChat(null)
   }, [activeTab]);
 
   const handleJoinChat = (chat) => {
