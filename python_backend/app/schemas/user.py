@@ -20,6 +20,6 @@ class ReadUser(BaseModel):
 class PatchUser(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    username: Optional[str] = None
+    #username: Optional[str] = None
     email: Optional[str] = None
     description: Optional[str] = None

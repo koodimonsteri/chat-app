@@ -4,6 +4,7 @@ const apiUrl = process.env.REACT_APP_API_URL;
 
 const getAuthHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem('jwt_token')}`,
+  'Content-Type': 'application/json',
 });
 
 export const fetchCurrentUser = async () => {
@@ -68,13 +69,10 @@ export const fetchPublicChats = async () => {
   }
 };
 
-export const updateUser = async (userData) => {
-  const response = await fetch('/api/user', {
+export const updateUser = async (userId, userData) => {
+  const response = await fetch(`${apiUrl}/api/user/${userId}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify(userData),
   });
 
@@ -82,5 +80,5 @@ export const updateUser = async (userData) => {
     throw new Error('Failed to update user data');
   }
 
-  return response.json();
+  return await response.json();
 }

@@ -5,8 +5,8 @@ from starlette.requests import Request
 from starlette.exceptions import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
 
-import jwt
-import settings
+#import jwt
+#import settings
 from schemas import user as schema
 from crud import user as crud 
 
@@ -34,7 +34,6 @@ async def get_me(request: Request):
     return user
 
     
-
 @router.patch(
     path='/{user_id}',
     response_model=schema.ReadUser
@@ -42,11 +41,11 @@ async def get_me(request: Request):
 async def patch_user(
     user_id: int,
     request: Request,
-    user_data:  schema.PatchUser
+    user_data: schema.PatchUser
 ):
     """ Patch user by id. """
-    # TODO patch only self or with admin rights.
     logger.info('Patch user.')
+    # TODO patch only self or with admin rights.
     existing_user = await crud.get_user_by_id(request.state.db, user_id)
 
     if not existing_user:
@@ -57,7 +56,7 @@ async def patch_user(
 
     if user_data.username:
         check_username = await crud.get_user_by_name(request.state.db, user_data.username)
-        if not check_username:
+        if check_username:
             raise HTTPException(
                 status_code=400,
                 detail="Username already taken",
@@ -66,7 +65,7 @@ async def patch_user(
     
     if user_data.email:
         check_email = await crud.get_user_by_email(request.state.db, user_data.email)
-        if not check_email:
+        if check_email:
             raise HTTPException(
                 status_code=400,
                 detail="Email already taken",
