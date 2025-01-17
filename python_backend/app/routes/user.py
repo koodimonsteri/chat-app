@@ -46,8 +46,14 @@ async def patch_user(
     """ Patch user by id. """
     logger.info('Patch user.')
     # TODO patch only self or with admin rights.
+    current_user = await crud.get_user_by_name(request.state.db, request.state.username)
+    if not current_user or current_user.id != user_id:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found or invalid permissions.",
+        )
+
     existing_user = await crud.get_user_by_id(request.state.db, user_id)
-    logger.info("patch data: %s", user_data)
     if not existing_user:
         raise HTTPException(
             status_code=404,
