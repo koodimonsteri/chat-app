@@ -22,8 +22,7 @@ export const fetchCurrentUser = async () => {
 };
 
 export const createChat = async (chatData) => {
-  try {
-    const response = await fetch(`${apiUrl}/api/chat`, {
+    return fetch(`${apiUrl}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,22 +30,11 @@ export const createChat = async (chatData) => {
       },
       body: JSON.stringify(chatData),
     });
-    if (!response.ok) {
-      if (response.status === 401) {
-        return { error: 'JWT expired' };
-      }
-      throw new Error('Failed to create chat');
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error creating chat:', error);
-    return { error: error.message };
-  }
 };
 
 export const fetchMyChats = async () => {
   try {
-    const response = await fetch(`${apiUrl}/api/chat/user`, {
+    const response = await fetch(`${apiUrl}/api/chat?current_user=true`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
@@ -80,20 +68,19 @@ export const fetchPublicChats = async () => {
   }
 };
 
-
-export const apiLogin = async (username, password) => {
-  try {
-    const response = await fetch(`${apiUrl}/api/auth/login`, {
-    method: 'POST',
+export const updateUser = async (userData) => {
+  const response = await fetch('/api/user', {
+    method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('jwt')}`,
     },
-    body: JSON.stringify({
-      username,
-      password,
-      }),
-    });
-  } catch (error) {
-    console.log("error", error)
-  };
-};
+    body: JSON.stringify(userData),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update user data');
+  }
+
+  return response.json();
+}

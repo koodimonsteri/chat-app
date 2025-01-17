@@ -158,6 +158,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: #e5e5e5;
+    transition: background-color 0.3s ease;
+    border-radius: 5px;
+  }
+
+  .chat-summary:hover {
+    background-color: #d1d1d1;
   }
   
   .chat-details {
@@ -169,7 +176,7 @@
   
   .chat-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     margin-top: 10px;
   }
   

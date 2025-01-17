@@ -18,13 +18,12 @@ const ProtectedRoute = ({ element: Component, ...rest }) => {
 
     try {
       const decoded = jwtDecode(token);
-      const isTokenExpired = decoded.exp * 1000 < Date.now();
-
-      if (isTokenExpired) {
-        localStorage.removeItem('jwt_token');
-        setLoading(false);
-        return;
-      }
+      //const isTokenExpired = decoded.exp * 1000 < Date.now();
+      //if (isTokenExpired) {
+      //  localStorage.removeItem('jwt_token');
+      //  setLoading(false);
+      //  return;
+      //}
 
       const fetchUser = async () => {
         try {

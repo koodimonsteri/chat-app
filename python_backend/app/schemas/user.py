@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional
 from datetime import datetime
 
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReadUser(BaseModel):
@@ -19,6 +20,6 @@ class ReadUser(BaseModel):
 class PatchUser(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    username: str = None
-    email: str = None
-    description: str = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    description: Optional[str] = None

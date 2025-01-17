@@ -1,24 +1,37 @@
 import logging
 
-from sqlalchemy import create_engine
+from contextlib import asynccontextmanager
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import sessionmaker
 import settings
 
 
 logger = logging.getLogger('uvicorn')
 
-engine = create_engine(settings.DB_URL, echo=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+engine = create_async_engine(
+    settings.DB_URL,
+    echo=True,
+    pool_size=5,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_recycle=1800,
+    pool_pre_ping=True,
+)
+
+AsyncSessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=AsyncSession  # Use AsyncSession
+)
 
 
-def get_db():
-    try:
-        db = SessionLocal()
-    
-    except SQLAlchemyError as e:
-        logger.error('SQLAlchemyError: %s', e)
-        raise e
-    except Exception as e:
-        logger.error('SessionLocal failed :()')
-    return db
+@asynccontextmanager
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        except SQLAlchemyError as e:
+            logger.error('SQLAlchemyError: %s', e)
+            raise e

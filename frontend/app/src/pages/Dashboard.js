@@ -41,11 +41,26 @@ const Dashboard = ({ currentUser, onLogout }) => {
     setCreateChatFormError('');
     setCreateChatFormSuccess('');
     try {
-      const newChat = await createChat(createChatFormData);
+      const response = await createChat(createChatFormData);
       setCreateChatFormSuccess('Chat created successfully!');
-      setCreateChatFormData({ name: '', is_private: true });
+      setCreateChatFormData({ name: '', description: '', is_private: true });
+      
+      if (response.status == 401) {
+        onLogout()
+      }
+      else if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to create chat");
+      }
+      const responseData = await response.json();
+      setCreateChatFormSuccess(`Chat created successfully: ${responseData.name}`);
+      setCreateChatFormError("");
+      console.log("Created chat:", responseData);
     } catch (error) {
-      setCreateChatFormError(error.message || 'An error occurred');
+      if (error.message === 'Invalid JWT ')
+      setCreateChatFormError(error.message || "An unexpected error occurred");
+      setCreateChatFormSuccess("");
+      console.error("Error creating chat:", error);
     }
   };
 
@@ -152,6 +167,7 @@ const Dashboard = ({ currentUser, onLogout }) => {
                       <div className="chat-details">
                         <p><strong>Owner:</strong> {chat.chat_owner.username}</p>
                         <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
+                        <p><strong>Users:</strong> {chat.users.length}</p>
                         <div className="chat-actions">
                           <button className="join-button" onClick={() => handleJoinChat(chat.id)}>
                             Join
@@ -189,6 +205,7 @@ const Dashboard = ({ currentUser, onLogout }) => {
                       <div className="chat-details">
                         <p><strong>Owner:</strong> {chat.chat_owner.username}</p>
                         <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
+                        <p><strong>Users:</strong> {chat.users.length}</p>
                         <div className="chat-actions">
                           <button className="join-button" onClick={() => handleJoinChat(chat)}>
                             Join

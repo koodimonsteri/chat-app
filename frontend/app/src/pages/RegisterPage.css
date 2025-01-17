@@ -1,4 +1,4 @@
-.register-page {
+  .register-page {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -24,7 +24,7 @@
   }
   
 
-.error {
+  .error {
     color: red;
     font-size: 12px;
   }
@@ -36,7 +36,7 @@
     margin: 0 auto;
   }
   
-  button {
+  .register-page button {
     padding: 10px;
     background-color: #4CAF50;
     color: white;
@@ -44,7 +44,7 @@
     cursor: pointer;
   }
   
-  button:disabled {
+  .register-page button:disabled {
     background-color: #ccc;
     cursor: not-allowed;
   }

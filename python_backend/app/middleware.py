@@ -36,7 +36,6 @@ def register_cors(app: FastAPI):
 
 
 def register_exception_handlers(app: FastAPI):
-    #app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
     # database exceptions
     logger.info('Register sqlalchemy exception handler.')
     @app.exception_handler(SQLAlchemyError)
@@ -57,7 +56,6 @@ def register_exception_handlers(app: FastAPI):
             content={"message": exc.detail},
         )
     app.add_exception_handler(StarletteHTTPException, my_exception_handler)
-    #app.add_exception_handler(HTTPException, http_exception_handler)
 
     # fallback exception handler
     logger.info('Register unhandled exception handler.')
@@ -72,37 +70,30 @@ def register_exception_handlers(app: FastAPI):
             content={"message": "An unexpected error occurred. Please try again later."},
         )
 
-    #app.add_middleware(ExceptionMiddleware, handlers=app.exception_handlers)
-
-
 
 def registed_db_session(app: FastAPI): 
-    class DBSessionMiddleware(BaseHTTPMiddleware):
+    class AsyncDBSessionMiddleware(BaseHTTPMiddleware):
         def __init__(self, app):
             super().__init__(app)
 
         async def dispatch(self, request: Request, call_next):
             logger.info("DB session middleware start")
-            db = get_db()
 
-            #current_user = user_crud.find_user_by_name(db, request.state.username)
-            #if not current_user:
-            #    raise StarletteHTTPException(status_code=404, detail="User not found.")
-
-            request.state.db = db
-            try:
-                response = await call_next(request)
-                logger.debug("DB session middleware completed call_next")
-                db.commit()
-            except Exception as e:
-                db.rollback()
-                raise e
-            finally:
-                db.close()
-                logger.info("DB session middleware end")
+            async with get_db() as db:
+                request.state.db = db
+                try:
+                    response = await call_next(request)
+                    logger.debug("Async DB session middleware completed call_next")
+                    await db.commit()
+                except Exception as e:
+                    await db.rollback()
+                    raise e
+                finally:
+                    await db.close()
+                    logger.info("Async DB session middleware end")
             return response
         
-    app.add_middleware(DBSessionMiddleware)
+    app.add_middleware(AsyncDBSessionMiddleware)
 
 
 JWT_PUBLIC_KEY = load_public_key()
@@ -153,7 +144,7 @@ def register_middlewares(app: FastAPI):
     register_cors(app)
 
     logger.info('Register authentication middleware.')
-    exclude_paths = ['/api/auth/login', '/api/auth/register', '/api/docs', '/docs']
+    exclude_paths = ['/api/auth/token', '/api/auth/register', '/api/docs', '/docs']
     register_authentication(app, exclude_paths)
 
     logger.info('Register db session middleware.')

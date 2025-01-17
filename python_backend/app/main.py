@@ -5,8 +5,9 @@ from routes import user, auth, chat
 app = FastAPI(
     title='Chat application backend',
     debug=True,
-    openapi_url='/api/docs'
+    openapi_url='/api/docs',
 )
+
 
 register_middlewares(app)
 

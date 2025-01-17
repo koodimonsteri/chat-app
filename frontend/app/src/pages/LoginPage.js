@@ -24,14 +24,14 @@ const LoginPage = ({ onLogin }) => {
     const apiUrl = process.env.REACT_APP_API_URL;
 
     try {
-      const response = await fetch(`${apiUrl}/api/auth/login`, {
+      const response = await fetch(`${apiUrl}/api/auth/token`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          username,
-          password,
+        body: new URLSearchParams({
+          username: username,
+          password: password,
         }),
       });
 
@@ -43,6 +43,7 @@ const LoginPage = ({ onLogin }) => {
       console.log('Got token: %s', data)
       onLogin(data.token);
     } catch (error) {
+      setLoading(false)
       setError('Login failed. Please check your credentials.');
     }
   };

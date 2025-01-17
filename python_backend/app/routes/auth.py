@@ -1,7 +1,8 @@
 from datetime import datetime, timezone, timedelta
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import jwt
 from starlette.requests import Request, HTTPException
 from passlib.context import CryptContext
@@ -19,7 +20,7 @@ router = APIRouter(
     tags=['auth']
 )
 
-
+#oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 JWT_PRIVATE_KEY = load_private_key()
 JWT_PUBLIC_KEY = load_public_key()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -30,11 +31,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     description='New users can register in this endpoint.',
     response_model=user_schema.ReadUser
 )
-def register(
+async def register(
     user_data: auth_schema.RegisterUser,
-    request: Request
+    request: Request,
 ):
-    existing_user = crud.get_user_by_name(request.state.db, user_data.username)
+    existing_user = await crud.get_user_by_name(request.state.db, user_data.username)
     if existing_user:
 
         raise HTTPException(
@@ -42,7 +43,7 @@ def register(
             detail="Username already taken"
         )
 
-    existing_user = crud.get_user_by_email(request.state.db, user_data.username)
+    existing_user = await crud.get_user_by_email(request.state.db, user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=400,
@@ -60,30 +61,31 @@ def register(
     logger.info('Add to db: %s', new_user)
     request.state.db.add(new_user)
     logger.info('Commit')
-    request.state.db.commit()
+    await request.state.db.commit()
     logger.info('Refresh')
-    request.state.db.refresh(new_user)
+    await request.state.db.refresh(new_user)
     logger.info('New user: %s', new_user)
     return new_user
 
 
 @router.post(
-    path='/login',
-    description='Users can login in this endpoint. Return JWT Bearer token.',
+    path='/token',
+    description='Users can login in this endpoint. Returns JWT Bearer token.',
     response_model=auth_schema.Token
 )
-def login(
-    user_data: auth_schema.LoginUser,
-    request: Request
+async def login(
+    request: Request,
+    form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-    existing_user = crud.get_user_by_name(request.state.db, user_data.username)
+    logger.info('Logging in as user: %s', form_data.username)
+    existing_user = await crud.get_user_by_name(request.state.db, form_data.username)
     if not existing_user:
         raise HTTPException(
             status_code=401,
             detail="Incorrect credentials."
         )
     
-    if not pwd_context.verify(user_data.password, existing_user.pw_hash):
+    if not pwd_context.verify(form_data.password, existing_user.pw_hash):
         raise HTTPException(
             status_code=401,
             detail="Incorrect credentials."
