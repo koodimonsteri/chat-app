@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HeaderBar from '../components/HeaderBar';
 import './UserSettings.css';
-import { updateUser } from '../api';
+import { fetchCurrentUser, updateUser } from '../api';
 import { useNavigate } from 'react-router-dom';
 //import Spinner from '../components/Spinner';
 
@@ -41,9 +41,9 @@ const UserSettings = ({ currentUser, onLogout }) => {
       setMessage({ type: 'info', text: 'No changes made.' });
       return;
     }
-
+    console.log("changed data", changedData)
     try {
-      await updateUser(currentUser.id, formData);
+      await updateUser(currentUser.id, changedData);
       setMessage({ type: 'success', text: 'User updated successfully!' });
       setOriginalData(formData);
     } catch (error) {
@@ -51,8 +51,24 @@ const UserSettings = ({ currentUser, onLogout }) => {
     }
   };
 
-  const handleRefresh = () => {
-    setFormData(originalData);
+  const handleRefresh = async () => {
+    try {
+      const refreshedUserData = await fetchCurrentUser();  // This fetches the latest user data from the backend
+      setFormData({
+        username: refreshedUserData.username,
+        email: refreshedUserData.email,
+        description: refreshedUserData.description,
+      });
+      setOriginalData({
+        username: refreshedUserData.username,
+        email: refreshedUserData.email,
+        description: refreshedUserData.description,
+      });
+      setMessage(null)
+    } catch (error) {
+      console.error("Error refreshing user data:", error);
+      setMessage({ type: 'error', text: 'Error refreshing user data' });
+    }
   };
 
   const handleGoToDashboard = () => {

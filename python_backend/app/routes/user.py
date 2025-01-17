@@ -47,21 +47,21 @@ async def patch_user(
     logger.info('Patch user.')
     # TODO patch only self or with admin rights.
     existing_user = await crud.get_user_by_id(request.state.db, user_id)
-
+    logger.info("patch data: %s", user_data)
     if not existing_user:
         raise HTTPException(
             status_code=404,
             detail="User not found",
         )
 
-    if user_data.username:
-        check_username = await crud.get_user_by_name(request.state.db, user_data.username)
-        if check_username:
-            raise HTTPException(
-                status_code=400,
-                detail="Username already taken",
-            )
-        setattr(existing_user, 'username', user_data.username)
+    #if user_data.username:
+    #    check_username = await crud.get_user_by_name(request.state.db, user_data.username)
+    #    if check_username:
+    #        raise HTTPException(
+    #            status_code=400,
+    #            detail="Username already taken",
+    #        )
+    #    setattr(existing_user, 'username', user_data.username)
     
     if user_data.email:
         check_email = await crud.get_user_by_email(request.state.db, user_data.email)
