@@ -8,14 +8,16 @@ from starlette.exceptions import HTTPException
 
 from crud import chat as chat_crud
 from crud import user as user_crud
-from models import Chat
+#from models import Chat
 from schemas import chat as chat_schema
+from auth import authenticate_user
 
 logger = logging.getLogger('uvicorn')
 
 router = APIRouter(
     prefix='/chat',
-    tags=['chat']
+    tags=['chat'],
+    dependencies=[Depends(authenticate_user)]
 )
 
 
@@ -26,11 +28,12 @@ router = APIRouter(
 async def get_chats(
     request: Request,
     params: chat_schema.GetChatsParams = Depends(),
+    username = Depends(authenticate_user)
 ):
     """ Get public chats or search by name. """
     logger.info('Get chats with params: %s', params)
     if params.current_user:
-        current_user = await user_crud.get_user_by_name(request.state.db, request.state.username)
+        current_user = await user_crud.get_user_by_name(request.state.db, username)
         chats = await chat_crud.get_current_user_chats(request.state.db, current_user)
     else:
         chats = await chat_crud.get_chats(request.state.db, params)
@@ -44,11 +47,12 @@ async def get_chats(
 )
 async def get_chat(
     request: Request,
-    chat_id: int
+    chat_id: int,
+    username = Depends(authenticate_user)
 ):
     """ Get chat by chat id. """
     logger.info('Get chat by id: %s', chat_id)
-    current_user = await user_crud.get_user_by_name(request.state.db, request.state.username)
+    current_user = await user_crud.get_user_by_name(request.state.db, username)
     if not current_user:
         raise HTTPException(
             status_code=404,
@@ -71,10 +75,11 @@ async def get_chat(
 )
 async def post_chat(
     request: Request,
-    chat_data: chat_schema.CreateChat
+    chat_data: chat_schema.CreateChat,
+    username = Depends(authenticate_user)
 ):
     """ Create new chat. """
-    current_user = await user_crud.get_user_by_name(request.state.db, request.state.username)
+    current_user = await user_crud.get_user_by_name(request.state.db, username)
     if not current_user:
         raise HTTPException(
             status_code=404,
@@ -93,11 +98,12 @@ async def post_chat(
 async def patch_chat(
     chat_id: str,
     request: Request,
-    chat_data: chat_schema.CreateChat
+    chat_data: chat_schema.CreateChat,
+    username = Depends(authenticate_user)
 ):
     """ Patch chat by chat id. """
     logger.info('Patch chat, id: %s', chat_id)
-    current_user = await user_crud.get_user_by_name(request.state.db, request.state.username)
+    current_user = await user_crud.get_user_by_name(request.state.db, username)
     if not current_user:
         raise HTTPException(
             status_code=404,
@@ -122,4 +128,5 @@ async def patch_chat(
     await request.state.db.refresh(existing_chat)
     logger.info('New chat: %s', existing_chat)
     return existing_chat
+
 

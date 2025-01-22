@@ -170,7 +170,7 @@ const Dashboard = ({ currentUser, onLogout }) => {
                         <p><strong>Created At:</strong> {new Date(chat.created_at).toLocaleString()}</p>
                         <p><strong>Users:</strong> {chat.users.length}</p>
                         <div className="chat-actions">
-                          <button className="join-button" onClick={() => handleJoinChat(chat.id)}>
+                          <button className="join-button" onClick={() => handleJoinChat(chat)}>
                             Join
                           </button>
                         </div>

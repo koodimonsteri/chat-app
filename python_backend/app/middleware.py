@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request#, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exception_handlers import http_exception_handler
-import jwt
+from jose import jwt
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -71,7 +71,7 @@ def register_exception_handlers(app: FastAPI):
         )
 
 
-def registed_db_session(app: FastAPI): 
+def register_db_session(app: FastAPI): 
     class AsyncDBSessionMiddleware(BaseHTTPMiddleware):
         def __init__(self, app):
             super().__init__(app)
@@ -81,6 +81,7 @@ def registed_db_session(app: FastAPI):
 
             async with get_db() as db:
                 request.state.db = db
+                
                 try:
                     response = await call_next(request)
                     logger.debug("Async DB session middleware completed call_next")
@@ -145,7 +146,7 @@ def register_middlewares(app: FastAPI):
 
     logger.info('Register authentication middleware.')
     exclude_paths = ['/api/auth/token', '/api/auth/register', '/api/docs', '/docs']
-    register_authentication(app, exclude_paths)
+    #register_authentication(app, exclude_paths)
 
     logger.info('Register db session middleware.')
-    registed_db_session(app)
+    register_db_session(app)

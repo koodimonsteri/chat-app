@@ -23,7 +23,7 @@ AsyncSessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
-    class_=AsyncSession  # Use AsyncSession
+    class_=AsyncSession
 )
 
 

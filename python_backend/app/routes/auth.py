@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import jwt
+from jose import jwt
 from starlette.requests import Request, HTTPException
 from passlib.context import CryptContext
 

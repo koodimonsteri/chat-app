@@ -1,8 +1,12 @@
 import logging
-
-import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
+
+from fastapi import Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
+from jose import jwt
+from starlette.exceptions import HTTPException
+
 import settings
 
 logger = logging.getLogger('uvicorn')
@@ -10,6 +14,7 @@ logger = logging.getLogger('uvicorn')
 JWT_PRIVATE_KEY_PATH = f"{settings.JWT_KEYS_DIR}/private.pem"
 JWT_PUBLIC_KEY_PATH = f"{settings.JWT_KEYS_DIR}/public.pem"
 
+security = HTTPBearer() 
 
 def load_private_key():
     logger.info('Load private key: %s', JWT_PRIVATE_KEY_PATH)
@@ -22,7 +27,7 @@ def load_public_key():
         return key_file.read()
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: timedelta = timedelta(minutes=30)) -> str:
+def create_jwt(data: Dict[str, Any], expires_delta: timedelta = timedelta(minutes=30)) -> str:
     to_encode = data.copy()
     expire = datetime.now(tz=timezone.utc) + expires_delta
     to_encode.update({"exp": expire})
@@ -31,13 +36,31 @@ def create_access_token(data: Dict[str, Any], expires_delta: timedelta = timedel
     return encoded_jwt
 
 
-def verify_access_token(token: str) -> Dict[str, Any]:
+def check_jwt(token: str) -> Dict[str, Any]:
     public_key = load_public_key()
     logger.info('public key: %s', public_key)
 
     try:
         payload = jwt.decode(token, public_key, algorithms=settings.JWT_ALGORITHM)
         logger.info('Payload: %s', payload)
-        return payload
-    except jwt.PyJWTError:
-        raise Exception("Invalid token")
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return payload
+
+
+def authenticate_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> str:
+    logger.info("Authenticating user")
+    token = credentials.credentials
+    
+    decoded = check_jwt(token)
+    
+    username = decoded.get("sub")
+    if not username:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
+
+    logger.info("User authenticated: %s", username)
+    return username

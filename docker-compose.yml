@@ -19,7 +19,7 @@ services:
       - chat_network
 
   python_backend:
-    build: 
+    build:
       context: ./python_backend
       dockerfile: Dockerfile
     env_file:

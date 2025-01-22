@@ -34,18 +34,20 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     console.log(currentUser)
     console.log(chat)
     if (!currentUser || !chat) return;
-    const token = `Bearer ${localStorage.getItem('jwt_token')}`;
-    const socketUrl = `ws://127.0.0.1:9090`;
+    //const token = `Bearer ${localStorage.getItem('jwt_token')}`;
+    const token = `${localStorage.getItem('jwt_token')}`;
+    const socketUrl = `ws://localhost:8000/ws/chat/${chat.id}?token=${token}`;
     const socket = new WebSocket(socketUrl);
 
     socket.onopen = () => {
-      const joinMessage = {
-        type: 'join',
-        chatId: chat.id,  // Example chatId, adjust as needed
-        userId: currentUser.id, // Pass the currentUser ID
-        token: token, // Include the JWT token in the first message
-      };
-      socket.send(JSON.stringify(joinMessage));
+      //const joinMessage = {
+      //  type: 'join',
+      //  chatId: chat.id,
+      //  userId: currentUser.id,
+      //  token: token,
+      //};
+      //socket.send(JSON.stringify(joinMessage));
+      console.log('Opened websocket!')
     };
 
     socket.onerror = (error) => {
@@ -73,7 +75,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      ws.send(JSON.stringify({ type: 'message', content: newMessage }));
+      ws.send(JSON.stringify({ sender_username: currentUser.username, content: newMessage }));
       setNewMessage('');
     }
   };
@@ -104,7 +106,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
       <div className="chat-messages">
         {messages.map((message, index) => (
           <div key={index} className="message">
-            <strong>{message.user}: </strong>{message.content}
+            <strong>{message.sender_username}: </strong>{message.content}
           </div>
         ))}
       </div>

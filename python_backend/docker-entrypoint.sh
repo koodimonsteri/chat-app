@@ -20,7 +20,8 @@ if [ ! -f /tmp/.setup_done ]; then
         
         echo "JWT keys generated successfully."
     fi
-    
+    echo $DB_HOST
+    echo $DB_PORT
     echo "Waiting for PostgreSQL to be ready..."
     until nc -z -v -w30 "$DB_HOST" "$DB_PORT"; do
             echo "Waiting for PostgreSQL to be available..."

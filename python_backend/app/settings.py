@@ -12,6 +12,5 @@ DEV=os.getenv('DEV') or 1
 
 JWT_KEYS_DIR=os.getenv('JWT_KEYS_DIR')
 JWT_ALGORITHM=os.getenv('JWT_ALGORITHM')
-_jwt_expires_seconds = os.getenv('JWT_EXPIRES_SECONDS')
-JWT_EXPIRES_SECONDS = int(_jwt_expires_seconds) if _jwt_expires_seconds.isdigit() else 3600
+JWT_EXPIRES_SECONDS = int(os.getenv('JWT_EXPIRES_SECONDS', 3600))
 

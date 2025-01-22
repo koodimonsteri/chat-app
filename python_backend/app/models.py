@@ -63,15 +63,20 @@ class User(Base):
         return f"<User(username={self.username}, email={self.email})>"
 
 
-#class UserChat(Base):
-#    __tablename__ = 'user_chats'
-#
-#    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-#    chat_id = Column(Integer, ForeignKey('chats.id'), primary_key=True)
-#
-#    user = relationship("User", back_populates="user_chats")
-#    chat = relationship("Chat", back_populates="user_chats")
-#
-#    def __repr__(self):
-#        return f"<UserChat(user_id={self.user_id}, chat_id={self.chat_id})>"
-#    
+class ChatMessage(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(Integer, ForeignKey('chats.id'), nullable=False) 
+    sender_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    sender_username = Column(String(255), nullable=False)
+
+    content = Column(TEXT)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    def __repr__(self):
+        return f"<Message(chat_id={self.chat_id}, sender_id={self.sender_id}, content={self.content})>"
+
+

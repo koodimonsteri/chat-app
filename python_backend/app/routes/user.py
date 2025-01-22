@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.exceptions import HTTPException
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,13 +9,15 @@ from sqlalchemy.exc import SQLAlchemyError
 #import settings
 from schemas import user as schema
 from crud import user as crud 
+from auth import authenticate_user
 
 logger = logging.getLogger('uvicorn')
 
 
 router = APIRouter(
     prefix='/user',
-    tags=['user']
+    tags=['user'],
+    dependencies=[Depends(authenticate_user)]
 )
 
 
@@ -23,9 +25,12 @@ router = APIRouter(
     path='/me',
     response_model=schema.ReadUser
 )
-async def get_me(request: Request):
+async def get_me(
+    request: Request,
+    username = Depends(authenticate_user)
+):
     """ Get current user. """
-    user = await crud.get_user_by_name(request.state.db, request.state.username)
+    user = await crud.get_user_by_name(request.state.db, username)
     if user is None:
         raise HTTPException(
             status_code=404,
@@ -41,11 +46,12 @@ async def get_me(request: Request):
 async def patch_user(
     user_id: int,
     request: Request,
-    user_data: schema.PatchUser
+    user_data: schema.PatchUser,
+    username = Depends(authenticate_user)
 ):
     """ Patch user by id. """
     logger.info('Patch user.')
-    # TODO patch only self or with admin rights.
+
     current_user = await crud.get_user_by_name(request.state.db, request.state.username)
     if not current_user or current_user.id != user_id:
         raise HTTPException(
