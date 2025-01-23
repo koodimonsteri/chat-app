@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 #import settings
 from schemas import user as schema
 from crud import user as crud 
-from auth import authenticate_user
+from authentication import authenticate_user
 
 logger = logging.getLogger('uvicorn')
 

@@ -38,7 +38,7 @@ def create_jwt(data: Dict[str, Any], expires_delta: timedelta = timedelta(minute
 
 def check_jwt(token: str) -> Dict[str, Any]:
     public_key = load_public_key()
-    logger.info('public key: %s', public_key)
+    #logger.info('public key: %s', public_key)
 
     try:
         payload = jwt.decode(token, public_key, algorithms=settings.JWT_ALGORITHM)

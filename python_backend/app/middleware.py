@@ -11,9 +11,9 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 
-from auth import load_public_key
+from authentication import load_public_key
 from database import get_db
-from crud import user as user_crud
+#from crud import user as user_crud
 import settings
 
 
@@ -115,7 +115,6 @@ def register_authentication(app: FastAPI, exclude_paths: List[str]):
 
             if any(request.url.path.startswith(path) for path in self.exclude_paths):
                 return await call_next(request)
-
 
             auth_header = request.headers.get("Authorization")
             logger.info('Auth header: %s', auth_header)

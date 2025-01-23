@@ -15,6 +15,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
   const [loading, setLoading] = useState(true);
   const [chat, setChat] = useState(location.state?.chat || null);
   const navigate = useNavigate();
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.chat) {
@@ -56,7 +57,8 @@ const ChatRoom = ({ currentUser, onLogout }) => {
 
     socket.onmessage = (event) => {
       const message = JSON.parse(event.data);
-      setMessages(prevMessages => [...prevMessages, message]);
+      console.log('new message:', message);
+      setMessages(messages => [...messages, message]);
     };
 
     socket.onclose = () => {
@@ -73,8 +75,25 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     };
   }, [currentUser, chat]);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+    else if (e.key === "Enter" && e.shiftKey) {
+      return;
+    }
+  };
+
   const handleSendMessage = () => {
     if (newMessage.trim()) {
+      console.log('Sending new message:', newMessage);
       ws.send(JSON.stringify({ sender_username: currentUser.username, content: newMessage }));
       setNewMessage('');
     }
@@ -103,12 +122,13 @@ const ChatRoom = ({ currentUser, onLogout }) => {
         onNavigate={handleNavigation}
       />
       
-      <div className="chat-messages">
+      <div className="chat-messages" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
         {messages.map((message, index) => (
           <div key={index} className="message">
             <strong>{message.sender_username}: </strong>{message.content}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="chat-input">
@@ -116,6 +136,7 @@ const ChatRoom = ({ currentUser, onLogout }) => {
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type a message..."
+          onKeyDown={(e) => handleKeyDown(e)}
         />
         <button onClick={handleSendMessage}>Send</button>
       </div>

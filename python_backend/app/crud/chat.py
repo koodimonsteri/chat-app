@@ -24,10 +24,10 @@ async def get_chats(db: AsyncSession, params: chat_schema.GetChatsParams):
 
 
 async def get_chat_by_id(db: AsyncSession, chat_id: int):
-    query = select(Chat).where(Chat.id == chat_id)
+    query = select(Chat).options(joinedload(Chat.users)).where(Chat.id == chat_id)
 
     result = await db.execute(query)
-    return result.scalars().one_or_none()
+    return result.unique().scalars().one_or_none()
 
 
 async def get_current_user_chats(db: AsyncSession, current_user: User):
@@ -46,7 +46,6 @@ async def create_chat(
     current_user: User, 
     chat_data: chat_schema.CreateChat
 ) -> Chat:
-    """ Create and save a new chat to the database. """
     new_chat = Chat(
         name=chat_data.name,
         description=chat_data.description,

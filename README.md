@@ -2,19 +2,18 @@
 
 Learning some php and symfony.\
 Created REST API backend.\
-Routes:\
-/auth with /register and /login\
-/chat to manage chats\
-/user to manage users\
-/websocket for messaging WIP
 
 Rewriting backend with python fastapi.\
-Nice docker detup.
+Chat rooms work finally! :)
 
-React frontend to register/login\
-Dashboard to manage chats\
-User settings to manage user data\
-Chat rooms to chat with other users WIP
+Nice docker detup.\
+rename .env.example to .env in project root\
+New python backend chat app can be started with:\
+docker-compose up --build
+
+
+
+PHP symfony backend (outdated):\
 
 Project is set up so that you can just build it with docker.\
 rename .env.example to .env in project root\

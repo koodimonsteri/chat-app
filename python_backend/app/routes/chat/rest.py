@@ -10,7 +10,7 @@ from crud import chat as chat_crud
 from crud import user as user_crud
 #from models import Chat
 from schemas import chat as chat_schema
-from auth import authenticate_user
+from authentication import authenticate_user
 
 logger = logging.getLogger('uvicorn')
 
