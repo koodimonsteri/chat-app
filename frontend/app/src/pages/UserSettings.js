@@ -76,6 +76,7 @@ const UserSettings = ({ currentUser, onLogout }) => {
   };
 
   const handleNavigation = async (path) => {
+    setFormData(originalData)
     navigate(path);
   };
 

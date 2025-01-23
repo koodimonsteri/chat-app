@@ -52,7 +52,7 @@ async def patch_user(
     """ Patch user by id. """
     logger.info('Patch user.')
 
-    current_user = await crud.get_user_by_name(request.state.db, request.state.username)
+    current_user = await crud.get_user_by_name(request.state.db, username)
     if not current_user or current_user.id != user_id:
         raise HTTPException(
             status_code=404,
