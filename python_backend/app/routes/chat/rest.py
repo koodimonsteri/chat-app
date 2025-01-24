@@ -120,13 +120,29 @@ async def patch_chat(
     for var, value in vars(chat_data).items():
         setattr(existing_chat, var, value) if value is not None else None
 
-    logger.info('Add to db: %s', existing_chat)
     request.state.db.add(existing_chat)
-    logger.info('Commit')
     await request.state.db.commit()
-    logger.info('Refresh')
     await request.state.db.refresh(existing_chat)
-    logger.info('New chat: %s', existing_chat)
+
     return existing_chat
 
 
+@router.delete(
+        path="/api/chat/{chat_id}",
+        response_model=chat_schema.ReadChat
+)
+async def delete_chat_endpoint(
+    chat_id: int,
+    request: Request,
+    current_username: int = Depends(authenticate_user),
+):
+    """Delete a chat by chat id."""
+    current_user = user_crud.get_user_by_name(request.state.db, current_username)
+    if not current_user:
+        raise HTTPException(404, 'User not Found')
+
+    logger.info('Delete chat by id: %s', chat_id)
+    deleted_chat = await chat_crud.delete_chat(request.state.db, chat_id, current_user.id)
+
+
+    return deleted_chat

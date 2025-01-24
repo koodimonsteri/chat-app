@@ -58,14 +58,8 @@ async def register(
         pw_hash=hashed_password
     )
 
-    logger.info('Add to db: %s', new_user)
-    request.state.db.add(new_user)
-    logger.info('Commit')
-    await request.state.db.commit()
-    logger.info('Refresh')
-    await request.state.db.refresh(new_user)
-    logger.info('New user: %s', new_user)
-    return new_user
+    created = crud.create_user(new_user)
+    return created
 
 
 @router.post(

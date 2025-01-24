@@ -1,10 +1,11 @@
 import logging
 
-from sqlalchemy import asc
+from sqlalchemy import asc, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
 
+from exceptions import ResourceNotFoundError
 from models import Chat, User
 from schemas import chat as chat_schema
 
@@ -66,3 +67,18 @@ async def create_chat(
     )
     chat_with_relations = chat_with_relations.scalar_one()
     return chat_with_relations
+
+
+async def delete_chat(db: AsyncSession, chat_id: int, current_user_id: int):
+    chat = await get_chat_by_id(db, chat_id)
+    
+    if not chat:
+        raise ResourceNotFoundError("Chat not found")
+    
+    if chat.chat_owner_id != current_user_id:
+        raise PermissionError("You don't have permission to delete this chat")
+    
+    await db.execute(delete(Chat).where(Chat.id == chat_id))
+    await db.commit()
+
+    return chat

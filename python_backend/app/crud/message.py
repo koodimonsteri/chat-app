@@ -16,3 +16,4 @@ async def get_message_history(db: AsyncSession, chat_id: int, start: int = 0, li
     )
     messages = result.scalars().all()
     return messages
+

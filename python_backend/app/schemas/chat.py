@@ -5,11 +5,9 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
 from schemas import user as user_schema
+from schemas.general import PaginationParams
 
-
-class GetChatsParams(BaseModel):
-    start: int = Field(0, ge=0, description="Start index for pagination")
-    limit: int = Field(100, gt=0, le=100, description="Maximum number of chats to return")
+class GetChatsParams(PaginationParams):
     chat_name: Optional[str] = Field(None, description="Filter chats by name. Case-insesitive search")
     current_user: bool = Field(False, description='Fetch current user chats if true.')
 

@@ -1,12 +1,24 @@
 from __future__ import annotations
-
+from enum import Enum as PyEnum
+import uuid
 from typing import List
-from sqlalchemy import Boolean, Column, Integer, String, ForeignKey, DateTime, Table, TEXT
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    DateTime,
+    Table,
+    TEXT,
+    UUID,
+    Enum as SQLEnum
+)
 from sqlalchemy.orm import relationship, Mapped, mapped_column, declarative_base
 from sqlalchemy.sql import func
 
-#class Base(DeclarativeBase):
-#    pass
+
 Base = declarative_base()
 
 user_chat_association = Table(
@@ -16,11 +28,23 @@ user_chat_association = Table(
     Column("chat_id", ForeignKey("chats.id", ondelete="CASCADE"), primary_key=True)
 )
 
+# This table represents bidirectional friendships. 
+# Each row connects two users and there is no implied directionality.
+# Only one row is stored for each friendship pair.
+friendship_association = Table(
+    'friendships',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    Column('friend_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    Column('created_at', DateTime, server_default=func.now(), nullable=False)
+)
+
 
 class Chat(Base):
     __tablename__ = 'chats'
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id = Column(Integer, primary_key=True)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
 
     name = Column(String(255), nullable=False)
     description = Column(TEXT, nullable=True)
@@ -43,7 +67,8 @@ class Chat(Base):
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id = Column(Integer, primary_key=True)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
 
     username = Column(String(255), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
@@ -53,10 +78,31 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    own_chats: Mapped[List[Chat]] = relationship(back_populates="chat_owner")
-
+    own_chats: Mapped[List[Chat]] = relationship(
+        "Chat", back_populates="chat_owner", cascade="all, delete-orphan"
+    )
     chats: Mapped[List[Chat]] = relationship(
         secondary=user_chat_association, back_populates="users"
+    )
+
+    friends: Mapped[List[User]] = relationship(
+        "User",
+        secondary=friendship_association,
+        primaryjoin=id == friendship_association.c.user_id,
+        secondaryjoin=id == friendship_association.c.friend_id,
+        back_populates='friends'
+    )
+
+    sent_requests = relationship(
+        "FriendRequest",
+        foreign_keys="[FriendRequest.sender_id]",
+        back_populates="sender"
+    )
+
+    received_requests = relationship(
+        "FriendRequest",
+        foreign_keys="[FriendRequest.receiver_id]",
+        back_populates="receiver"
     )
 
     def __repr__(self):
@@ -67,6 +113,8 @@ class ChatMessage(Base):
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+
     chat_id = Column(Integer, ForeignKey('chats.id'), nullable=False) 
     sender_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     sender_username = Column(String(255), nullable=False)
@@ -79,4 +127,26 @@ class ChatMessage(Base):
     def __repr__(self):
         return f"<Message(chat_id={self.chat_id}, sender_id={self.sender_id}, content={self.content})>"
 
+
+class FriendshipStatus(PyEnum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
+
+class FriendRequest(Base):
+    __tablename__ = 'friend_requests'
+
+    id = Column(Integer, primary_key=True)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+
+    sender_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
+    receiver_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
+
+    status = Column(SQLEnum(FriendshipStatus), nullable=False, default=FriendshipStatus.PENDING)
+
+    sender = relationship("User", foreign_keys=[sender_id], back_populates="sent_requests")
+    receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_requests")
+
+    created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
