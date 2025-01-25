@@ -5,8 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
 
-from exceptions import ResourceNotFoundError
-from models import Chat, User
+from core.exceptions import ResourceNotFoundError
+from core.models import Chat, User
 from schemas import chat as chat_schema
 
 

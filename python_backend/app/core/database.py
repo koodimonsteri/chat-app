@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
-import settings
+from core import settings
 
 
 logger = logging.getLogger('uvicorn')
@@ -29,6 +29,15 @@ AsyncSessionLocal = sessionmaker(
 
 @asynccontextmanager
 async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        except SQLAlchemyError as e:
+            logger.error('SQLAlchemyError: %s', e)
+            raise e
+
+from typing import AsyncGenerator
+async def get_db2() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session

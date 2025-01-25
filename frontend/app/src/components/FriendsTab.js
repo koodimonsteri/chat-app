@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
 import ChatBox from "./ChatBox";
 import "./FriendsTab.css";
+import { useUser } from '../context/UserContext';
+import { sendFriendRequest } from '../api.js'
 
 const FriendsTab = () => {
+  const { currentUser } = useUser();
   const [friends, setFriends] = useState([]);
   const [friendRequests, setFriendRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFriend, setSelectedFriend] = useState(null);
-  const [newFriendEmail, setNewFriendEmail] = useState("");
+  const [newFriendUsername, setNewFriendUsername] = useState("");
 
   const [showFriendRequests, setShowFriendRequests] = useState(false);
   const [showFriends, setShowFriends] = useState(true);
@@ -45,24 +48,20 @@ const FriendsTab = () => {
   }, []);
 
   const handleAddFriend = async () => {
-    if (!newFriendEmail.trim()) return;
+    if (!newFriendUsername.trim()) return;
 
     try {
-      const response = await fetch("/api/user/friend-requests", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: newFriendEmail }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send friend request");
+        const result = await sendFriendRequest(currentUser.id, newFriendUsername);
+    
+        if (result.success) {
+          setNewFriendUsername("");
+          alert(result.message);
+        } else {
+          alert(result.message);
+        }
+      } catch (error) {
+        alert(error.message);
       }
-
-      setNewFriendEmail("");
-      alert("Friend request sent!");
-    } catch (error) {
-      alert(error.message);
-    }
   };
 
   const toggleFriendRequests = () => {
@@ -98,16 +97,34 @@ const FriendsTab = () => {
         <div className="input-container">
           <input
             type="text"
-            value={newFriendEmail}
-            onChange={(e) => setNewFriendEmail(e.target.value)}
-            placeholder="Enter email to add friend"
+            value={newFriendUsername}
+            onChange={(e) => setNewFriendUsername(e.target.value)}
+            placeholder="Enter username"
           />
           <button onClick={handleAddFriend}>Add</button>
         </div>
 
         <div className="expandable-section">
           <button onClick={toggleFriendRequests}>
-            Friend Requests ({friendRequests.length})
+            Sent Requests ({friendRequests.length})
+          </button>
+          {showFriendRequests && (
+            <ul>
+              {friendRequests.map((request) => (
+                <li key={request.guid}>
+                  <span>{request.username}</span>
+                  <button onClick={() => alert("Accept logic here!")}>
+                    Accept
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="expandable-section">
+          <button onClick={toggleFriendRequests}>
+            Received Requests ({friendRequests.length})
           </button>
           {showFriendRequests && (
             <ul>

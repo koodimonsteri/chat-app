@@ -5,10 +5,10 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from database import get_db
-from models import ChatMessage
+from core.database import get_db
+from core.models import ChatMessage
 from schemas import message as msg_schema
-from authentication import check_jwt
+from core.authentication import check_jwt
 from crud import user as user_crud, message as msg_crud, chat as chat_crud
 
 logger = logging.getLogger('uvicorn')

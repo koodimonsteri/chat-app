@@ -1,5 +1,4 @@
 from __future__ import annotations
-from enum import Enum as PyEnum
 import uuid
 from typing import List
 
@@ -15,8 +14,10 @@ from sqlalchemy import (
     UUID,
     Enum as SQLEnum
 )
-from sqlalchemy.orm import relationship, Mapped, mapped_column, declarative_base
+from sqlalchemy.orm import relationship, Mapped, declarative_base
 from sqlalchemy.sql import func
+
+from schemas.friend_request import FriendshipStatus
 
 
 Base = declarative_base()
@@ -126,12 +127,6 @@ class ChatMessage(Base):
 
     def __repr__(self):
         return f"<Message(chat_id={self.chat_id}, sender_id={self.sender_id}, content={self.content})>"
-
-
-class FriendshipStatus(PyEnum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
 
 
 class FriendRequest(Base):

@@ -6,11 +6,12 @@ from fastapi import APIRouter, Depends
 from starlette.requests import Request
 from starlette.exceptions import HTTPException
 
+from core.authentication import authenticate_user
 from crud import chat as chat_crud
 from crud import user as user_crud
 #from models import Chat
 from schemas import chat as chat_schema
-from authentication import authenticate_user
+from core.models import User
 
 logger = logging.getLogger('uvicorn')
 
@@ -28,12 +29,11 @@ router = APIRouter(
 async def get_chats(
     request: Request,
     params: chat_schema.GetChatsParams = Depends(),
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Get public chats or search by name. """
     logger.info('Get chats with params: %s', params)
     if params.current_user:
-        current_user = await user_crud.get_user_by_name(request.state.db, username)
         chats = await chat_crud.get_current_user_chats(request.state.db, current_user)
     else:
         chats = await chat_crud.get_chats(request.state.db, params)
@@ -48,16 +48,10 @@ async def get_chats(
 async def get_chat(
     request: Request,
     chat_id: int,
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Get chat by chat id. """
     logger.info('Get chat by id: %s', chat_id)
-    current_user = await user_crud.get_user_by_name(request.state.db, username)
-    if not current_user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
-        )
 
     chat = await chat_crud.get_chat_by_id(request.state.db, chat_id)
     if not chat or current_user not in chat.users:
@@ -76,16 +70,10 @@ async def get_chat(
 async def post_chat(
     request: Request,
     chat_data: chat_schema.CreateChat,
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Create new chat. """
-    current_user = await user_crud.get_user_by_name(request.state.db, username)
-    if not current_user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
-        )
-    
+
     new_chat = await chat_crud.create_chat(request.state.db, current_user, chat_data)
     
     return new_chat
@@ -99,22 +87,16 @@ async def patch_chat(
     chat_id: str,
     request: Request,
     chat_data: chat_schema.CreateChat,
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Patch chat by chat id. """
     logger.info('Patch chat, id: %s', chat_id)
-    current_user = await user_crud.get_user_by_name(request.state.db, username)
-    if not current_user:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found."
-        )
-    
+
     existing_chat = await chat_crud.get_chat_by_id(request.state.db, chat_id)
     if not existing_chat or existing_chat.chat_owner_id != current_user.id:
         raise HTTPException(
             status_code=404,
-            detail="Chat not found or invalid permissions."
+            detail="Chat not found or access denied."
         )
     
     for var, value in vars(chat_data).items():
@@ -134,12 +116,9 @@ async def patch_chat(
 async def delete_chat_endpoint(
     chat_id: int,
     request: Request,
-    current_username: int = Depends(authenticate_user),
+    current_user: User = Depends(authenticate_user)
 ):
     """Delete a chat by chat id."""
-    current_user = user_crud.get_user_by_name(request.state.db, current_username)
-    if not current_user:
-        raise HTTPException(404, 'User not Found')
 
     logger.info('Delete chat by id: %s', chat_id)
     deleted_chat = await chat_crud.delete_chat(request.state.db, chat_id, current_user.id)

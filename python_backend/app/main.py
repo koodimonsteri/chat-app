@@ -1,7 +1,10 @@
 from fastapi import FastAPI, APIRouter
-from middleware import register_middlewares
-from routes import user, auth
+
+from core.middleware import register_middlewares
+from routes import auth
 from routes.chat import rest as chat, websocket as chat_ws
+from routes.user import rest as user
+
 
 app = FastAPI(
     title='Chat application backend',

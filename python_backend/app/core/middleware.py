@@ -11,10 +11,10 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 
-from authentication import load_public_key
-from database import get_db
+from core.authentication import load_public_key
+from core.database import get_db
 #from crud import user as user_crud
-import settings
+from core import settings
 
 
 logger = logging.getLogger("uvicorn")

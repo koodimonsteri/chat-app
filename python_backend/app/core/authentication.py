@@ -6,8 +6,12 @@ from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, OAuth2PasswordBearer
 from jose import jwt
 from starlette.exceptions import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
-import settings
+from crud import user
+from core.database import get_db, get_db2
+from core.models import User
+from core import settings
 
 logger = logging.getLogger('uvicorn')
 
@@ -49,17 +53,24 @@ def check_jwt(token: str) -> Dict[str, Any]:
     return payload
 
 
-def authenticate_user(
+async def authenticate_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> str:
+    db_session: AsyncSession = Depends(get_db2)
+) -> User:
     logger.info("Authenticating user")
     token = credentials.credentials
-    
+
     decoded = check_jwt(token)
     
     username = decoded.get("sub")
     if not username:
-        raise HTTPException(status_code=401, detail="Invalid token payload")
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    current_user = await user.get_user_by_name(db_session, username)
+
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
 
     logger.info("User authenticated: %s", username)
-    return username
+    
+    return current_user

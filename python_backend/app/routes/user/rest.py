@@ -8,10 +8,12 @@ from sqlalchemy.exc import SQLAlchemyError
 
 #import jwt
 #import settings
+from core.database import get_db2
 from schemas import user as schema, auth as auth_schema
 from schemas.general import PaginationParams
 from crud import user as crud 
-from authentication import authenticate_user
+from core.authentication import authenticate_user
+from core.models import User
 
 logger = logging.getLogger('uvicorn')
 
@@ -28,18 +30,12 @@ router = APIRouter(
     response_model=schema.ReadUser
 )
 async def get_me(
-    request: Request,
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
 ):
     """ Get current user. """
-    user = await crud.get_user_by_name(request.state.db, username)
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="User not found",
-        )
+    logger.info('Get current user: %s', current_user)
 
-    return user
+    return current_user
 
 
 @router.get(
@@ -49,7 +45,7 @@ async def get_me(
 async def get_users(
     request: Request,
     pagination: PaginationParams,
-    username=Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Get all users. """
     logger.info('Get all users.')
@@ -76,12 +72,12 @@ async def get_users(
 async def get_user_by_id(
     user_id: int,
     request: Request,
-    username=Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Get user by id. """
     logger.info('Get user by id.')
 
-    current_user = await crud.get_user_by_name(request.state.db, username)
+    #current_user = await crud.get_user_by_name(request.state.db, username)
     
     # Admin check here
     if current_user.id != user_id:
@@ -159,13 +155,13 @@ async def patch_user(
     user_id: int,
     request: Request,
     user_data: schema.PatchUser,
-    username = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Patch user by id. """
     logger.info('Patch user.')
 
-    current_user = await crud.get_user_by_name(request.state.db, username)
-    if not current_user or current_user.id != user_id:
+    # Admin check here
+    if current_user.id != user_id:
         raise HTTPException(
             status_code=404,
             detail="User not found or invalid permissions.",
@@ -212,15 +208,13 @@ async def patch_user(
 async def delete_user(
     user_id: int,
     request: Request,
-    username=Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user)
 ):
     """ Delete a user by id. """
     logger.info('Delete user by id.')
 
-    current_user = await crud.get_user_by_name(request.state.db, username)
-    
     # Admin check here
-    if not current_user or current_user.id != user_id:
+    if current_user.id != user_id:
         raise HTTPException(
             status_code=403,
             detail="Insufficient permissions",
@@ -230,3 +224,86 @@ async def delete_user(
 
     logger.info("Deleted user: %s", deleted_user)
     return deleted_user
+
+###########################################
+#             Friend routes               #
+###########################################
+
+@router.get(
+    path="/{user_id}/friends",
+    response_model = List[schema.ReadUser]
+)
+async def get_friends(
+    request: Request,
+    user_id: int,
+    current_user: User = Depends(authenticate_user)
+):
+    # Admin check here
+    if current_user.id != user_id:
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
+
+    friends_user = await crud.get_user_with_friends(request.state.db, user_id)
+    
+    return friends_user.friends
+
+
+@router.get(
+    path="/{user_id}/friends/request",
+    response_model = List[schema.ReadUser]
+)
+async def get_friend_requests(
+    request: Request,
+    user_id: int,
+    current_user: User = Depends(authenticate_user)
+):
+
+    # Admin check here
+    if current_user.id != user_id:
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
+
+    user_friends = await crud.get_user_with_friends(request.state.db, user_id)
+    
+    return user_friends.friends
+
+"""
+@router.post("/{user_id}/friends/request", response_model=schemas.FriendRequestResponse)
+async def send_friend_request(
+    user_id: int, 
+    friend_request: schemas.FriendRequestCreate, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(authenticate_user)
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=400, detail="You cannot send a request for another user")
+
+    new_request = await crud.create_friend_request(db, sender_id=current_user.id, email=friend_request.email)
+    return new_request
+
+# Route to accept a friend request
+@router.post("/{user_id}/friends/accept", response_model=schemas.FriendRequestResponse)
+async def accept_friend_request(
+    user_id: int, 
+    request_id: int, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(authenticate_user)
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=400, detail="You cannot accept a request for another user")
+
+    accepted_request = await crud.accept_friend_request(db, user_id=current_user.id, request_id=request_id)
+    return accepted_request
+
+@router.post("/{user_id}/friends/reject", response_model=schemas.FriendRequestResponse)
+async def reject_friend_request(
+    user_id: int, 
+    request_id: int, 
+    db: Session = Depends(get_db), 
+    current_user = Depends(authenticate_user)
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=400, detail="You cannot reject a request for another user")
+
+    rejected_request = await crud.reject_friend_request(db, user_id=current_user.id, request_id=request_id)
+    return rejected_request
+
+"""

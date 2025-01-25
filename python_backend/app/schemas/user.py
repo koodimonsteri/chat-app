@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
@@ -33,3 +33,5 @@ class PatchUser(BaseModel):
     #username: Optional[str] = None
     email: Optional[str] = None
     description: Optional[str] = None
+
+

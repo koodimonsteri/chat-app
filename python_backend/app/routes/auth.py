@@ -7,11 +7,11 @@ from jose import jwt
 from starlette.requests import Request, HTTPException
 from passlib.context import CryptContext
 
-from authentication import load_private_key, load_public_key
+from core.authentication import load_private_key, load_public_key
 from crud import user as crud
-from models import User
+from core.models import User
 from schemas import auth as auth_schema, user as user_schema
-import settings
+from core import settings
 
 logger = logging.getLogger('uvicorn')
 

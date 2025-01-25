@@ -82,3 +82,24 @@ export const updateUser = async (userId, userData) => {
 
   return await response.json();
 }
+
+export const sendFriendRequest = async (user_id, username) => {
+  const apiUrl = `${apiUrl}/api/user/${user_id}/friends/request`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to send friend request");
+    }
+
+    return { success: true, message: "Friend request sent!" };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};

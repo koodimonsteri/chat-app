@@ -8,7 +8,7 @@ const ChatBox = ({ friend, onSendMessage, messages, wsConnected }) => {
       e.preventDefault();
       if (message.trim()) {
         onSendMessage(message);
-        setMessage(""); // Clear input
+        setMessage("");
       }
     };
   
