@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import { useUser } from '../context/UserContext';
 import './UserDropdown.css';
+import { fetchCurrentUser } from '../api';
 
-const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onNavigate}, ref) => { 
+const UserDropdown = React.forwardRef(({ onLogout, onNavigate }, ref) => { 
+  const { currentUser, setCurrentUser } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -28,6 +30,18 @@ const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onNa
     };
   }, [dropdownOpen]);
 
+  const handleSettings = async () => {
+    try {
+      const userData = await fetchCurrentUser()
+      setCurrentUser(userData)
+    } catch(error){
+      localStorage.removeItem('jwt_token');
+      onNavigate('/');
+    }
+
+    onNavigate('/user/settings')
+  };
+
   return (
     <div className="user-dropdown" ref={ref}>
       <button className="dropdown-toggle" onClick={toggleDropdown}>
@@ -36,7 +50,7 @@ const UserDropdown = React.forwardRef(({ currentUser, onSettings, onLogout, onNa
       {dropdownOpen && (
         <div className="dropdown-menu" ref={dropdownRef}>
 
-          <button onClick={onSettings}>Settings</button>
+          <button onClick={handleSettings}>Settings</button>
           <button onClick={onLogout}>Logout</button>
         </div>
       )}

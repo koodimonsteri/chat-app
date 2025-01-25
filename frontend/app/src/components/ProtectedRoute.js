@@ -1,53 +1,49 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { jwtDecode } from 'jwt-decode'; // Ensure correct import path
-import { fetchCurrentUser } from '../api'; // Your API call for fetching the current user
+import { useUser } from '../context/UserContext';
+import { fetchCurrentUser } from '../api';
 import Spinner from './Spinner';
 
 const ProtectedRoute = ({ element: Component, ...rest }) => {
-  const token = localStorage.getItem('jwt_token');
-  const [currentUser, setCurrentUser] = useState(null);
+  const { currentUser, setCurrentUser } = useUser();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem('jwt_token');
+
     if (!token) {
       setLoading(false);
       return;
     }
 
-    try {
-      //const decoded = jwtDecode(token);
+    const fetchUser = async () => {
+      try {
+        const user = await fetchCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        localStorage.removeItem('jwt_token');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      const fetchUser = async () => {
-        try {
-          const user = await fetchCurrentUser();
-          setCurrentUser(user);
-        } catch (err) {
-          console.error('Error fetching user:', err);
-          localStorage.removeItem('jwt_token');
-        } finally {
-          setLoading(false);
-        }
-      };
-
+    if (!currentUser) {
       fetchUser();
-    } catch (err) {
-      console.error('Invalid JWT:', err);
-      localStorage.removeItem('jwt_token');
+    } else {
       setLoading(false);
     }
-  }, [token]);
+  }, [currentUser, setCurrentUser]);
 
   if (loading) {
     return <Spinner />;
   }
 
   if (!currentUser) {
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
-  return <Component {...rest} currentUser={currentUser} />;
+  return <Component {...rest} />;
 };
 
 export default ProtectedRoute;

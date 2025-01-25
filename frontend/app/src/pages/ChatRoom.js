@@ -3,9 +3,10 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import HeaderBar from '../components/HeaderBar';
 import './ChatRoom.css'
 import { fetchCurrentUser } from '../api';
+import { useUser } from '../context/UserContext';
 
-
-const ChatRoom = ({ currentUser, onLogout }) => {
+const ChatRoom = ({ onLogout }) => {
+  const { currentUser } = useUser();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [ws, setWs] = useState(null);
@@ -117,7 +118,6 @@ const ChatRoom = ({ currentUser, onLogout }) => {
     <div className="chat-room">
       <HeaderBar
         title={chat.name || 'Chat Room'}
-        currentUser={currentUser}
         onLogout={handleLogoutClick}
         onNavigate={handleNavigation}
       />

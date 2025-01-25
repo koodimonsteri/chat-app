@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import Spinner from '../components/Spinner';
 import HeaderBar from '../components/HeaderBar';
-
+//import { useUser } from '../context/UserContext';
 import { createChat, fetchMyChats, fetchPublicChats } from '../api';
+import FriendsTab from '../components/FriendsTab';
 
-const Dashboard = ({ currentUser, onLogout }) => {
+const Dashboard = ({ onLogout }) => {
+  //const { currentUser } = useUser();
   const [activeTab, setActiveTab] = useState('myChats');
   const [createChatFormData, setCreateChatFormData] = useState({
     name: '',
@@ -222,6 +224,9 @@ const Dashboard = ({ currentUser, onLogout }) => {
             )}
           </div>
         );
+      case 'Friends':
+        return <FriendsTab/>;
+
       default:
         return <div>Select an option above</div>;
     }
@@ -235,7 +240,6 @@ const Dashboard = ({ currentUser, onLogout }) => {
     <div className="dashboard-page">
       <HeaderBar
         title="Dashboard"
-        currentUser={currentUser}
         onLogout={onLogout}
         onNavigate={handleNavigation}
       />
@@ -257,6 +261,12 @@ const Dashboard = ({ currentUser, onLogout }) => {
           onClick={() => setActiveTab('myChats')}
         >
           My Chats
+        </button>
+        <button
+          className={activeTab === 'Friends' ? 'active' : ''}
+          onClick={() => setActiveTab('Friends')}
+        >
+          Friends
         </button>
       </div>
       <div className="dashboard-content">{renderContent()}</div>

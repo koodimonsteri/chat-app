@@ -38,6 +38,7 @@ async def get_me(
             status_code=404,
             detail="User not found",
         )
+
     return user
 
 
@@ -198,12 +199,9 @@ async def patch_user(
     if user_data.description:
         setattr(existing_user, 'description', user_data.description)
 
-    logger.info("Committing changes to the user.")
     await request.state.db.commit()
-    logger.info("Refreshing the updated user.")
     await request.state.db.refresh(existing_user)
-
-    logger.info("Returning updated user: %s", existing_user)
+    logger.info('Updated user: %s', existing_user)
     return existing_user
 
 

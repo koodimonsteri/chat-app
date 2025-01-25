@@ -58,7 +58,7 @@ async def register(
         pw_hash=hashed_password
     )
 
-    created = crud.create_user(new_user)
+    created = await crud.create_user(request.state.db, new_user)
     return created
 
 

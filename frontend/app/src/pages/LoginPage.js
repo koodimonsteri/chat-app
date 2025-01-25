@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useUser } from '../context/UserContext';
 import './RegisterPage.css';
+import { fetchCurrentUser } from '../api';
 
-const LoginPage = ({ onLogin }) => {
+const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { setCurrentUser } = useUser();
 
   const token = localStorage.getItem('jwt_token');
   if (token) {
@@ -40,8 +43,14 @@ const LoginPage = ({ onLogin }) => {
       }
 
       const data = await response.json();
-      console.log('Got token: %s', data)
-      onLogin(data.token);
+      const token = data.token;
+      console.log('Got token: %s', token)
+      localStorage.setItem('jwt_token', token);
+
+      const userData = await fetchCurrentUser()
+      setCurrentUser(userData);
+      navigate('/dashboard');
+      
     } catch (error) {
       setLoading(false)
       setError('Login failed. Please check your credentials.');

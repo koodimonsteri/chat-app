@@ -4,8 +4,10 @@ import './UserSettings.css';
 import { fetchCurrentUser, updateUser } from '../api';
 import { useNavigate } from 'react-router-dom';
 //import Spinner from '../components/Spinner';
+import { useUser } from '../context/UserContext';
 
-const UserSettings = ({ currentUser, onLogout }) => {
+const UserSettings = ({ onLogout }) => {
+  const { currentUser } = useUser();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     //username: currentUser.username,
@@ -43,17 +45,29 @@ const UserSettings = ({ currentUser, onLogout }) => {
     }
     console.log("changed data", changedData)
     try {
-      await updateUser(currentUser.id, changedData);
+      const updated_user = await updateUser(currentUser.id, changedData);
       setMessage({ type: 'success', text: 'User updated successfully!' });
-      setOriginalData(formData);
+      console.log('Updated user:', updated_user)
+      setFormData({
+        email: updated_user.email,
+        description: updated_user.description,
+      });
+      setOriginalData({
+        email: updated_user.email,
+        description: updated_user.description,
+      });
+      
     } catch (error) {
       setMessage({ type: 'error', text: 'Error updating user data' });
     }
   };
+  useEffect(() => {
+    console.log('Updated originalData:', originalData);
+  }, [originalData]);
 
   const handleRefresh = async () => {
     try {
-      const refreshedUserData = await fetchCurrentUser();  // This fetches the latest user data from the backend
+      const refreshedUserData = await fetchCurrentUser();
       setFormData({
         username: refreshedUserData.username,
         email: refreshedUserData.email,
@@ -84,8 +98,6 @@ const UserSettings = ({ currentUser, onLogout }) => {
     <div className="user-settings-page">
       <HeaderBar
         title="User Settings"
-        currentUser={currentUser}
-        onSettings={() => {}}
         onLogout={onLogout}
         onDashboard={handleGoToDashboard}
         onClose={() => {}}

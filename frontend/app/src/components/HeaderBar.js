@@ -1,13 +1,13 @@
 // HeaderBar.js
 import React from 'react';
-import UserDropdown from './UserDropdown'; // Assuming you already have this component
+import UserDropdown from './UserDropdown';
 import './HeaderBar.css'
 
-const HeaderBar = ({ title, currentUser, onLogout, onNavigate }) => {
+const HeaderBar = ({ title, onLogout, onNavigate }) => {
     const handleGoToDashboard = () => {
         onNavigate('/dashboard');
       };
-    
+
   return (
     <div className="header-bar">
       <h1>{title}</h1>
@@ -19,9 +19,8 @@ const HeaderBar = ({ title, currentUser, onLogout, onNavigate }) => {
       </div>
       
       <UserDropdown
-        currentUser={currentUser}
-        onSettings={() => onNavigate('/user/settings')}
         onLogout={onLogout}
+        onNavigate={onNavigate}
       />
     </div>
   );

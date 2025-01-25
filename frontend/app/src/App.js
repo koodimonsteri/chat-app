@@ -7,7 +7,7 @@ import UserSettings from './pages/UserSettings';
 import ChatRoom from './pages/ChatRoom';
 import { fetchCurrentUser } from './api';
 import ProtectedRoute from './components/ProtectedRoute';
-
+import { UserProvider } from './context/UserContext';
 
 const App = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -30,37 +30,43 @@ const App = () => {
     navigate('/');
   };
 
+  const handleSettings = async () => {
+    const loadUser = await fetchCurrentUser();
+    setCurrentUser(loadUser);
+    navigate('/user/settings')
+  };
+
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route 
-        path="/dashboard" 
-        element={
-          <ProtectedRoute
-            element={ Dashboard }
-            //currentUser={currentUser}
-            onLogout={handleLogout} />} 
-          />
-      <Route 
-        path="/user/settings"
-        element={
-          <ProtectedRoute
-            element={ UserSettings }
-            //currentUser={currentUser} 
-            onLogout={handleLogout}
-            />}
-          />
-      <Route 
-        path="/chat/:chatId"
-        element={
-          <ProtectedRoute
-            element={ ChatRoom } 
-            //currentUser={currentUser} 
-            onLogout={handleLogout}/>}
-          />
-    </Routes>
+    <UserProvider>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute
+              element={ Dashboard }
+              onSettings={handleSettings}
+              onLogout={handleLogout} />} 
+            />
+        <Route 
+          path="/user/settings"
+          element={
+            <ProtectedRoute
+              element={ UserSettings }
+              onLogout={handleLogout}
+              />}
+            />
+        <Route 
+          path="/chat/:chatId"
+          element={
+            <ProtectedRoute
+              element={ ChatRoom } 
+              onLogout={handleLogout}/>}
+            />
+      </Routes>
+    </UserProvider>
   );
 };
 

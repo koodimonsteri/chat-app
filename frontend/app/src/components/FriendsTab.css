@@ -1,0 +1,110 @@
+/* Sidebar Styles */
+
+  .sidebar {
+    flex: 0 0 25%;
+    max-width: 300px;
+    min-width: 200px;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-right: 1px solid #ccc;
+  }
+  
+  .sidebar .input-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .sidebar .input-container input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .sidebar .input-container button {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .sidebar .input-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Friend Requests and Friends List */
+  .expandable-section {
+    margin-bottom: 20px;
+  }
+  
+  .expandable-section button {
+    width: 100%;
+    background: none;
+    border: none;
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+  
+  .expandable-section button:hover {
+    color: #007bff;
+  }
+  
+  .expandable-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .expandable-section li {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .expandable-section li:last-child {
+    border-bottom: none;
+  }
+  
+  .expandable-section li span {
+    margin-right: 10px;
+  }
+  
+  .expandable-section li button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .expandable-section li button:hover {
+    background-color: #218838;
+  }
+  
+  /* Chat Box */
+  .chat-box {
+    width: 75%;
+    padding: 10px;
+    background-color: white;
+  }
+  
+  .chat-box-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 18px;
+    color: #777;
+  }
+  
+  .flex {
+    display: flex;
+    height: 100%;
+  }

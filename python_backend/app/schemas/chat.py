@@ -1,6 +1,7 @@
 
 from datetime import datetime
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 
@@ -12,10 +13,16 @@ class GetChatsParams(PaginationParams):
     current_user: bool = Field(False, description='Fetch current user chats if true.')
 
 
+class ChatOwnerResponse(BaseModel):
+    guid: UUID
+    username: str
+    
+
 class ReadChat(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    guid: UUID
 
     name: str
     description: str
