@@ -1,10 +1,13 @@
 # Chat-App
 
-Learning some php and symfony.\
-Created REST API backend.\
+At first this was for learning some php and symfony.\
+Created REST API backend.
 
-Rewriting backend with python fastapi.\
-Chat rooms work finally! :)
+
+But in the end rewrote backend with python fastapi.\
+And extended from there.\
+Chat rooms work finally! :)\
+Friendship stuff kinda works
 
 Nice docker detup.\
 rename .env.example to .env in project root\
@@ -13,7 +16,7 @@ docker-compose up --build
 
 
 
-PHP symfony backend (outdated):\
+PHP symfony backend (outdated):
 
 Project is set up so that you can just build it with docker.\
 rename .env.example to .env in project root\

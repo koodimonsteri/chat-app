@@ -72,11 +72,11 @@ async def create_chat(
 async def delete_chat(db: AsyncSession, chat_id: int, current_user_id: int):
     chat = await get_chat_by_id(db, chat_id)
     
-    if not chat:
-        raise ResourceNotFoundError("Chat not found")
+    if not chat or chat.chat_owner_id != current_user_id:
+        raise ResourceNotFoundError("Chat not found or invalid permissions")
     
-    if chat.chat_owner_id != current_user_id:
-        raise PermissionError("You don't have permission to delete this chat")
+    #if chat.chat_owner_id != current_user_id:
+    #    raise PermissionError("Invalid permissions to delete chat")
     
     await db.execute(delete(Chat).where(Chat.id == chat_id))
     await db.commit()

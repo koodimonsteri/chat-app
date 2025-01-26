@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.requests import Request
@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 #import jwt
 #import settings
 from core.database import get_db2
-from schemas import user as schema, auth as auth_schema
+from schemas import user as schema, auth as auth_schema, friend_request
 from schemas.general import PaginationParams
 from crud import user as crud 
 from core.authentication import authenticate_user
@@ -19,8 +19,8 @@ logger = logging.getLogger('uvicorn')
 
 
 router = APIRouter(
-    prefix='/user',
-    tags=['user'],
+    prefix='/users',
+    tags=['users'],
     dependencies=[Depends(authenticate_user)]
 )
 
@@ -51,8 +51,8 @@ async def get_users(
     logger.info('Get all users.')
 
     # Waiting for admin roles
-    if True:
-        raise HTTPException(403, 'Insufficient permissions')
+    #if True:
+    #    raise HTTPException(403, 'Insufficient permissions')
 
     users = await crud.get_all_users(request.state.db, pagination)
 
@@ -236,74 +236,95 @@ async def delete_user(
 async def get_friends(
     request: Request,
     user_id: int,
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db = Depends(get_db2)
 ):
-    # Admin check here
     if current_user.id != user_id:
         raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
 
-    friends_user = await crud.get_user_with_friends(request.state.db, user_id)
-    
-    return friends_user.friends
+    user_friends = await crud.get_user_with_friends(db, user_id)
+    logger.info('User friends: %s', user_friends.friends)
+    if not user_friends:
+        raise HTTPException(404, 'Friends not found.')
+
+    return user_friends.friends
 
 
 @router.get(
-    path="/{user_id}/friends/request",
-    response_model = List[schema.ReadUser]
+    path="/{user_id}/friend-requests",
+    response_model = friend_request.FriendRequestResponse
 )
 async def get_friend_requests(
     request: Request,
     user_id: int,
+    current_user: User = Depends(authenticate_user),
+    #db = Depends(get_db2)
+):
+    if current_user.id != user_id:
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
+    
+    logger.info('Getting friend requests!')
+    
+    friend_requests = await crud.get_friend_requests(request.state.db, user_id)
+
+    return {'friend_requests': friend_requests}
+
+
+@router.post(
+    path="/{user_id}/friend-requests",
+    response_model=friend_request.FriendRequestResponse
+)
+async def send_friend_request(
+    user_id: int, 
+    friend_request: friend_request.FriendRequestCreate, 
+    db = Depends(get_db2),
     current_user: User = Depends(authenticate_user)
 ):
-
-    # Admin check here
     if current_user.id != user_id:
         raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
 
-    user_friends = await crud.get_user_with_friends(request.state.db, user_id)
-    
-    return user_friends.friends
-
-"""
-@router.post("/{user_id}/friends/request", response_model=schemas.FriendRequestResponse)
-async def send_friend_request(
-    user_id: int, 
-    friend_request: schemas.FriendRequestCreate, 
-    db: Session = Depends(get_db), 
-    current_user = Depends(authenticate_user)
-):
-    if current_user.id != user_id:
-        raise HTTPException(status_code=400, detail="You cannot send a request for another user")
-
-    new_request = await crud.create_friend_request(db, sender_id=current_user.id, email=friend_request.email)
+    new_request = await crud.create_friend_request(db, sender_id=current_user.id, username=friend_request.username)
     return new_request
 
-# Route to accept a friend request
-@router.post("/{user_id}/friends/accept", response_model=schemas.FriendRequestResponse)
+
+@router.post(
+    path="/{user_id}/friend-requests/{request_id}/accept",
+    response_model=friend_request.FriendRequest,
+    #status_code=201
+)
 async def accept_friend_request(
     user_id: int, 
     request_id: int, 
-    db: Session = Depends(get_db), 
-    current_user = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session = Depends(get_db2)
 ):
+    logger.info('Accepting friend request!')
     if current_user.id != user_id:
-        raise HTTPException(status_code=400, detail="You cannot accept a request for another user")
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
 
-    accepted_request = await crud.accept_friend_request(db, user_id=current_user.id, request_id=request_id)
+    accepted_request = await crud.accept_friend_request(db_session, user_id=current_user.id, request_id=request_id)
+    logger.info('Accepted request: %s', accepted_request)
     return accepted_request
 
-@router.post("/{user_id}/friends/reject", response_model=schemas.FriendRequestResponse)
+
+@router.post(
+    path="/{user_id}/friend-requests/{request_id}/reject",
+    response_model=friend_request.FriendRequestResponse
+)
 async def reject_friend_request(
-    user_id: int, 
-    request_id: int, 
-    db: Session = Depends(get_db), 
-    current_user = Depends(authenticate_user)
+    user_id: int,
+    request_id: int,
+    current_user: User = Depends(authenticate_user),
+    db = Depends(get_db2),
 ):
     if current_user.id != user_id:
-        raise HTTPException(status_code=400, detail="You cannot reject a request for another user")
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
 
-    rejected_request = await crud.reject_friend_request(db, user_id=current_user.id, request_id=request_id)
+    try:
+        rejected_request = await crud.reject_friend_request(db, user_id=current_user.id, request_id=request_id)
+    except Exception as e:
+        logger.error('Failed to accept friendship')
+        logger.exception(e)
+        raise e
     return rejected_request
 
-"""

@@ -16,8 +16,8 @@ from core.models import User
 logger = logging.getLogger('uvicorn')
 
 router = APIRouter(
-    prefix='/chat',
-    tags=['chat'],
+    prefix='/chats',
+    tags=['chats'],
     dependencies=[Depends(authenticate_user)]
 )
 
@@ -110,7 +110,7 @@ async def patch_chat(
 
 
 @router.delete(
-        path="/api/chat/{chat_id}",
+        path="/{chat_id}",
         response_model=chat_schema.ReadChat
 )
 async def delete_chat_endpoint(
@@ -122,6 +122,5 @@ async def delete_chat_endpoint(
 
     logger.info('Delete chat by id: %s', chat_id)
     deleted_chat = await chat_crud.delete_chat(request.state.db, chat_id, current_user.id)
-
 
     return deleted_chat

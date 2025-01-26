@@ -9,7 +9,7 @@ const getAuthHeaders = () => ({
 
 export const fetchCurrentUser = async () => {
   try {
-    const response = await fetch(`${apiUrl}/api/user/me`, {
+    const response = await fetch(`${apiUrl}/api/users/me`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
@@ -23,7 +23,7 @@ export const fetchCurrentUser = async () => {
 };
 
 export const createChat = async (chatData) => {
-    return fetch(`${apiUrl}/api/chat`, {
+    return fetch(`${apiUrl}/api/chats`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,7 +35,7 @@ export const createChat = async (chatData) => {
 
 export const fetchMyChats = async () => {
   try {
-    const response = await fetch(`${apiUrl}/api/chat?current_user=true`, {
+    const response = await fetch(`${apiUrl}/api/chats?current_user=true`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
@@ -53,7 +53,7 @@ export const fetchMyChats = async () => {
 
 export const fetchPublicChats = async () => {
   try {
-    const response = await fetch(`${apiUrl}/api/chat`, {
+    const response = await fetch(`${apiUrl}/api/chats`, {
       headers: getAuthHeaders(),
     });
     if (!response.ok) {
@@ -70,7 +70,7 @@ export const fetchPublicChats = async () => {
 };
 
 export const updateUser = async (userId, userData) => {
-  const response = await fetch(`${apiUrl}/api/user/${userId}`, {
+  const response = await fetch(`${apiUrl}/api/users/${userId}`, {
     method: 'PATCH',
     headers: getAuthHeaders(),
     body: JSON.stringify(userData),
@@ -83,13 +83,76 @@ export const updateUser = async (userId, userData) => {
   return await response.json();
 }
 
-export const sendFriendRequest = async (user_id, username) => {
-  const apiUrl = `${apiUrl}/api/user/${user_id}/friends/request`;
+export const getFriends = async (user_id) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friends`;
 
   try {
-    const response = await fetch(apiUrl, {
+    const response = await fetch(apiUrlWithParams, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch friend requests");
+    }
+
+    const data = await response.json();
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const getFriendRequests = async (user_id) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friend-requests`;
+
+  try {
+    const response = await fetch(apiUrlWithParams, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch friend requests");
+    }
+
+    const data = await response.json();
+    return { success: true, data: data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const getFriendRequestById = async (user_id, request_id) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friend-requests/${request_id}`;
+
+  try {
+    const response = await fetch(apiUrlWithParams, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to fetch friend request details");
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const postFriendRequest = async (user_id, username) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friend-requests`;
+
+  try {
+    const response = await fetch(apiUrlWithParams, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ username }),
     });
 
@@ -99,6 +162,47 @@ export const sendFriendRequest = async (user_id, username) => {
     }
 
     return { success: true, message: "Friend request sent!" };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const acceptFriendRequest = async (user_id, request_id) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friend-requests/${request_id}/accept`;
+
+  try {
+    const response = await fetch(apiUrlWithParams, {
+      method: "POST",
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to accept friend request");
+    }
+
+    return { success: true, message: "Friend request accepted!" };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};
+
+export const rejectFriendRequest = async (user_id, request_id) => {
+  const apiUrlWithParams = `${apiUrl}/api/users/${user_id}/friend-requests/${request_id}/reject`;
+
+  try {
+    const response = await fetch(apiUrlWithParams, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ request_id }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || "Failed to reject friend request");
+    }
+
+    return { success: true, message: "Friend request rejected!" };
   } catch (error) {
     return { success: false, message: error.message };
   }

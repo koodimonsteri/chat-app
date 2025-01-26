@@ -2,56 +2,68 @@ import React, { useState, useEffect } from "react";
 import ChatBox from "./ChatBox";
 import "./FriendsTab.css";
 import { useUser } from '../context/UserContext';
-import { sendFriendRequest } from '../api.js'
+import { postFriendRequest, getFriendRequests, getFriends, acceptFriendRequest } from '../api.js'
 
 const FriendsTab = () => {
   const { currentUser } = useUser();
   const [friends, setFriends] = useState([]);
-  const [friendRequests, setFriendRequests] = useState([]);
+  const [sentRequests, setSentRequests] = useState([]);
+  const [receivedRequests, setReceivedRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFriend, setSelectedFriend] = useState(null);
   const [newFriendUsername, setNewFriendUsername] = useState("");
 
-  const [showFriendRequests, setShowFriendRequests] = useState(false);
+  const [showSentRequests, setShowSentRequests] = useState(false);
+  const [showReceivedRequests, setShowReceivedRequests] = useState(false);
   const [showFriends, setShowFriends] = useState(true);
 
   const [messages, setMessages] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const [socket, setSocket] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [friendsResponse, requestsResponse] = await Promise.all([
-          fetch("/api/user/friends"),
-          fetch("/api/user/friend-requests"),
-        ]);
 
-        if (!friendsResponse.ok || !requestsResponse.ok) {
-          throw new Error("Failed to fetch data");
-        }
-
-        const friendsData = await friendsResponse.json();
-        const requestsData = await requestsResponse.json();
-
-        setFriends(friendsData);
-        setFriendRequests(requestsData);
-        setLoading(false);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      console.log('Starting fetch data')
+      const [friendsResponse, requestsResponse] = await Promise.all([
+      getFriends(currentUser.id).catch((err) => {
+          console.error("Error fetching friends:", err);
+          throw err;
+          }),
+      getFriendRequests(currentUser.id).catch((err) => {
+          console.error("Error fetching friend requests:", err);
+          throw err;
+          }),
+      ]);
+      if (!friendsResponse.ok || !requestsResponse.ok) {
+        setError('Failed to fetch friends.');
       }
-    };
 
+      const friendRequests = requestsResponse.data.friend_requests;
+      const sent = friendRequests.filter(request => request.sender_id === currentUser.id);
+      const received = friendRequests.filter(request => request.receiver_id === currentUser.id);
+      console.log('Friends: %s', friendsResponse)
+      setFriends(friendsResponse.data);
+      setSentRequests(sent);
+      setReceivedRequests(received); 
+      setLoading(false);
+    } catch (error) {
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
+
   }, []);
 
   const handleAddFriend = async () => {
     if (!newFriendUsername.trim()) return;
 
     try {
-        const result = await sendFriendRequest(currentUser.id, newFriendUsername);
+        const result = await postFriendRequest(currentUser.id, newFriendUsername);
     
         if (result.success) {
           setNewFriendUsername("");
@@ -64,10 +76,14 @@ const FriendsTab = () => {
       }
   };
 
-  const toggleFriendRequests = () => {
-    setShowFriendRequests((prev) => !prev);
+  const toggleSentRequests = () => {
+    setShowSentRequests((prev) => !prev);
   };
 
+  const toggleReceivedRequests = () => {
+    setShowReceivedRequests((prev) => !prev);
+  };
+  
   const toggleFriends = () => {
     setShowFriends((prev) => !prev);
   };
@@ -91,6 +107,22 @@ const FriendsTab = () => {
     setMessages([]);
   };
 
+  const handleAcceptFriend = async (request_id) => {
+    try {
+      const accepted = await acceptFriendRequest(currentUser.id, request_id);
+  
+      if (accepted.success) {
+        await fetchData();
+        alert("Friend request accepted!");
+      } else {
+        alert("Failed to accept friend request");
+      }
+    } catch (error) {
+      console.error("Error accepting friend request:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
+
   return (
     <div className="flex h-full">
       <div className="sidebar">
@@ -105,16 +137,16 @@ const FriendsTab = () => {
         </div>
 
         <div className="expandable-section">
-          <button onClick={toggleFriendRequests}>
-            Sent Requests ({friendRequests.length})
+          <button onClick={toggleSentRequests}>
+            Sent Requests ({sentRequests.length})
           </button>
-          {showFriendRequests && (
+          {showSentRequests && (
             <ul>
-              {friendRequests.map((request) => (
-                <li key={request.guid}>
-                  <span>{request.username}</span>
-                  <button onClick={() => alert("Accept logic here!")}>
-                    Accept
+              {sentRequests.map((request) => (
+                <li key={request.guid} className="request-item">
+                  <span>{request.receiver.username}</span>
+                  <button onClick={() => alert("Reject logic here!")}>
+                    Reject
                   </button>
                 </li>
               ))}
@@ -123,15 +155,15 @@ const FriendsTab = () => {
         </div>
 
         <div className="expandable-section">
-          <button onClick={toggleFriendRequests}>
-            Received Requests ({friendRequests.length})
+          <button onClick={toggleReceivedRequests}>
+            Received Requests ({receivedRequests.length})
           </button>
-          {showFriendRequests && (
+          {showReceivedRequests && (
             <ul>
-              {friendRequests.map((request) => (
-                <li key={request.guid}>
-                  <span>{request.username}</span>
-                  <button onClick={() => alert("Accept logic here!")}>
+              {receivedRequests.map((request) => (
+                <li key={request.guid} className="request-item">
+                  <span>{request.sender.username}</span>
+                  <button onClick={() => handleAcceptFriend(request.id)}>
                     Accept
                   </button>
                 </li>
