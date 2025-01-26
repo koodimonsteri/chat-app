@@ -12,3 +12,9 @@ class PermissionError(Exception):
         self.message = message
         super().__init__(self.message)
 
+
+# Maybe extend sqlalchemy?
+class DatabaseError(Exception):
+    def __init__(self, message="Something happened with database.."):
+        self.message = message
+        super().__init__(self.message)
