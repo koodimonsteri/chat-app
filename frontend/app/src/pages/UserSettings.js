@@ -8,16 +8,19 @@ import { useUser } from '../context/UserContext';
 
 const UserSettings = ({ onLogout }) => {
   const { currentUser } = useUser();
+  const [isOpenAITokenVisible, setIsOpenAITokenVisible] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     //username: currentUser.username,
     email: currentUser.email,
     description: currentUser.description,
+    openai_token: currentUser.openai_token
   });
   const [originalData, setOriginalData] = useState({
     //username: currentUser.username,
     email: currentUser.email,
     description: currentUser.description,
+    openai_token: currentUser.openai_token
   });
   const [message, setMessage] = useState(null);
 
@@ -29,6 +32,7 @@ const UserSettings = ({ onLogout }) => {
   const getChangedFields = () => {
     const changedFields = {};
     Object.keys(formData).forEach((key) => {
+      console.log(key)
       if (formData[key] !== originalData[key]) {
         changedFields[key] = formData[key];
       }
@@ -51,10 +55,12 @@ const UserSettings = ({ onLogout }) => {
       setFormData({
         email: updated_user.email,
         description: updated_user.description,
+        openai_token: updated_user.openai_token
       });
       setOriginalData({
         email: updated_user.email,
         description: updated_user.description,
+        openai_token: updated_user.openai_token
       });
       
     } catch (error) {
@@ -72,11 +78,13 @@ const UserSettings = ({ onLogout }) => {
         username: refreshedUserData.username,
         email: refreshedUserData.email,
         description: refreshedUserData.description,
+        openai_token: refreshedUserData.openai_token
       });
       setOriginalData({
         username: refreshedUserData.username,
         email: refreshedUserData.email,
         description: refreshedUserData.description,
+        openai_token: refreshedUserData.openai_token
       });
       setMessage(null)
     } catch (error) {
@@ -92,6 +100,10 @@ const UserSettings = ({ onLogout }) => {
   const handleNavigation = async (path) => {
     setFormData(originalData)
     navigate(path);
+  };
+
+  const toggleTokenVisibility = () => {
+    setIsOpenAITokenVisible(!isOpenAITokenVisible);
   };
 
   return (
@@ -154,6 +166,25 @@ const UserSettings = ({ onLogout }) => {
               </div>
               <div></div>
             </div>
+
+            <div className="user-info-row">
+                <div className="label">OpenAI Token:</div>
+                <div className="value">
+                  {isOpenAITokenVisible ? (
+                    <input
+                      type="text"
+                      name="openai_token"
+                      value={formData.openai_token}
+                      onChange={handleInputChange}
+                    />
+                  ) : (
+                    <span>**********</span>
+                  )}
+                </div>
+                <button onClick={toggleTokenVisibility}>
+                  {isOpenAITokenVisible ? 'Hide Token' : 'Show Token'}
+                </button>
+              </div>
 
             <div className="user-info-row">
               <div className="label">Created At:</div>

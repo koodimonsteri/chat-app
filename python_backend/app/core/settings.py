@@ -13,4 +13,7 @@ DEV=os.getenv('DEV') or 1
 JWT_KEYS_DIR=os.getenv('JWT_KEYS_DIR')
 JWT_ALGORITHM=os.getenv('JWT_ALGORITHM')
 JWT_EXPIRES_SECONDS = int(os.getenv('JWT_EXPIRES_SECONDS', 3600))
-
+import logging
+logger = logging.getLogger('uvicorn')
+OPENAI_ENCRYPT_KEY=os.getenv('OPENAI_TOKEN_ENCRYPT_KEY')
+logger.info('openai key: %s', OPENAI_ENCRYPT_KEY)

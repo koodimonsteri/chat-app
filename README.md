@@ -14,6 +14,14 @@ rename .env.example to .env in project root\
 New python backend chat app can be started with:\
 docker-compose up --build
 
+Some Brain thoughts:\
+Group chat - private - no encryption\
+Group chat - public  - no encryption\
+Group chat - private - E2E\
+Group chat - public  - E2E\
+1 on 1 chat with friends - no encryption\
+1 on 1 chat with friends - E2E\
+Personal LLM chat (+RAG)
 
 
 PHP symfony backend (outdated):

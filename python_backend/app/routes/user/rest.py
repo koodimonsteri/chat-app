@@ -14,6 +14,7 @@ from schemas.general import PaginationParams
 from crud import user as crud 
 from core.authentication import authenticate_user
 from core.models import User
+from core.openai import encrypt_token
 
 logger = logging.getLogger('uvicorn')
 
@@ -194,6 +195,10 @@ async def patch_user(
     
     if user_data.description:
         setattr(existing_user, 'description', user_data.description)
+
+    if user_data.openai_token:
+        encrypted = encrypt_token(user_data.openai_token)
+        setattr(existing_user, 'openai_token', encrypted)
 
     await request.state.db.commit()
     await request.state.db.refresh(existing_user)

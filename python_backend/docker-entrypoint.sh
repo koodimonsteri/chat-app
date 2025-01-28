@@ -19,7 +19,8 @@ if [ ! -f /tmp/.setup_done ]; then
         chmod 644 "$JWT_PUBLIC_KEY_PATH"
         
         echo "JWT keys generated successfully."
-    fi
+    fi   
+
     echo $DB_HOST
     echo $DB_PORT
     echo "Waiting for PostgreSQL to be ready..."

@@ -1,16 +1,13 @@
 from datetime import datetime
-from enum import Enum
+
 from uuid import UUID
 from typing import List
 
 from pydantic import BaseModel, ConfigDict
 
 from schemas import user as user_schema
+from core.models import FriendshipStatus
 
-class FriendshipStatus(Enum):
-    PENDING = "pending"
-    ACCEPTED = "accepted"
-    REJECTED = "rejected"
 
 
 class FriendRequestCreate(BaseModel):

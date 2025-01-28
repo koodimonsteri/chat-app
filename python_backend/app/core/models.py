@@ -1,4 +1,5 @@
 from __future__ import annotations
+from enum import Enum as PYEnum
 import uuid
 from typing import List
 
@@ -17,10 +18,15 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship, Mapped, declarative_base
 from sqlalchemy.sql import func
 
-from schemas.friend_request import FriendshipStatus
-
 
 Base = declarative_base()
+
+
+class FriendshipStatus(PYEnum):
+    PENDING = "pending"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
 
 user_chat_association = Table(
     "user_chats",
@@ -54,6 +60,8 @@ class Chat(Base):
     chat_owner_id = Column(Integer, ForeignKey('users.id'), nullable=False) 
     chat_owner: Mapped[User] = relationship(back_populates="own_chats")
 
+    has_bot = Column(Boolean, nullable=False, default=False)
+
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
@@ -74,7 +82,9 @@ class User(Base):
     username = Column(String(255), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     pw_hash = Column(String(255), nullable=False)
-    description = Column(TEXT, nullable=True, default='')
+    description = Column(TEXT, default='', nullable=True)
+
+    openai_token = Column(String(255), default='', nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
