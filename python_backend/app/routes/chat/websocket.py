@@ -5,7 +5,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from core.database import get_db, get_db_context, AsyncSessionLocal
+from core.database import AsyncSessionLocal
 from core.models import ChatMessage
 from schemas import message as msg_schema
 from core.authentication import check_jwt
