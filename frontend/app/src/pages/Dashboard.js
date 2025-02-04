@@ -48,18 +48,20 @@ const Dashboard = ({ onLogout }) => {
       setCreateChatFormData({ name: '', description: '', is_private: true });
       
       if (response.status == 401) {
-        onLogout()
+        onLogout();
+        return;
       }
-      else if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Failed to create chat");
-      }
+      
       const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.message || "An unexpected error occurred");
+      }
+      
       setCreateChatFormSuccess(`Chat created successfully: ${responseData.name}`);
       setCreateChatFormError("");
       console.log("Created chat:", responseData);
     } catch (error) {
-      if (error.message === 'Invalid JWT ')
       setCreateChatFormError(error.message || "An unexpected error occurred");
       setCreateChatFormSuccess("");
       console.error("Error creating chat:", error);

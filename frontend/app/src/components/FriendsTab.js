@@ -26,7 +26,7 @@ const FriendsTab = () => {
   const fetchData = async () => {
     try {
       console.log('Starting fetch data')
-      const [friendsResponse, requestsResponse] = await Promise.all([
+      const [friendsResponse, requestsResponse] = await Promise.allSettled([
       getFriends(currentUser.id).catch((err) => {
           console.error("Error fetching friends:", err);
           throw err;

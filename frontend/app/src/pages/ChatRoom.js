@@ -17,15 +17,20 @@ const ChatRoom = ({ onLogout }) => {
   const [chat, setChat] = useState(location.state?.chat || null);
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
+  const [showChatSettings, setShowChatSettings] = useState(false);
+  const [chatSettings, setChatSettings] = useState({
+    name: chat.name || "",
+    description: chat.description || "",
+    isPrivate: chat.is_private || false,
+    hasBot: chat.has_bot
+  });
+  console.log(chat)
 
   useEffect(() => {
     if (location.state?.chat) {
       setChat(location.state.chat);
     } else {
-      // Fetch chat data or handle cases where it's not available
-    }
-    if (!currentUser) {
-      currentUser = fetchCurrentUser()
+      // Fetch chat data or handle missing
     }
     if (currentUser && chat) {
       setLoading(false);
@@ -114,6 +119,23 @@ const ChatRoom = ({ onLogout }) => {
     onLogout();
   };
   
+  const toggleChatSettings = () => {
+    setShowChatSettings(!showChatSettings);
+  };
+
+  const handleChatSettingsChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setChatSettings({
+      ...chatSettings,
+      [name]: type === "checkbox" ? checked : value,
+    });
+  };
+
+  const saveChatSettings = () => {
+    //handleUpdateChatSettings(chatSettings);
+    setShowChatSettings(false);
+  };
+
   return (
     <div className="chat-room">
       <HeaderBar
@@ -122,24 +144,104 @@ const ChatRoom = ({ onLogout }) => {
         onNavigate={handleNavigation}
       />
       
-      <div className="chat-messages" style={{ overflowY: 'auto', maxHeight: '70vh' }}>
-        {messages.map((message, index) => (
-          <div key={index} className="message">
-            <strong>{message.sender_username}: </strong>{message.content}
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+      {currentUser && currentUser.id === chat.chat_owner.id && (
+        <div className="chat-settings-toggle">
+          <button onClick={toggleChatSettings}>
+            {showChatSettings ? "Back to Chat" : "Chat Settings"}
+          </button>
+        </div>
+      )}
 
-      <div className="chat-input">
-        <textarea
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          placeholder="Type a message..."
-          onKeyDown={(e) => handleKeyDown(e)}
-        />
-        <button onClick={handleSendMessage}>Send</button>
-      </div>
+      {showChatSettings ? (
+        <div className="chat-settings-content">
+          <div className="user-info">
+            {!currentUser && <div className="error">Error loading user data</div>}
+
+            {currentUser && (
+              <>
+                <div className="chat-info-row">
+                  <div className="label">Chat Name:</div>
+                  <div className="value">
+                    <input
+                      type="text"
+                      name="name"
+                      value={chatSettings.name}
+                      onChange={handleChatSettingsChange}
+                    />
+                  </div>
+                  <div></div>
+                </div>
+
+                <div className="chat-info-row">
+                  <div className="label">Description:</div>
+                  <div className="value">
+                    <input
+                      type="text"
+                      name="description"
+                      value={chatSettings.description}
+                      onChange={handleChatSettingsChange}
+                    />
+                  </div>
+                  <div></div>
+                </div>
+
+                <div className="chat-info-row">
+                  <div className="label">Public:</div>
+                  <div className="value">
+                    <input
+                      type="checkbox"
+                      name="isPublic"
+                      checked={chatSettings.isPublic}
+                      onChange={handleChatSettingsChange}
+                    />
+                  </div>
+                  <div></div>
+                </div>
+                <div className="chat-info-row">
+                  <div className="label">ChatBot:</div>
+                  <div className="value">
+                    <input
+                      type="checkbox"
+                      name="hasBot"
+                      checked={chatSettings.hasBot}
+                      onChange={handleChatSettingsChange}
+                    />
+                  </div>
+                  <div></div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className="button-container">
+            <button onClick={saveChatSettings}>Save</button>
+            <button onClick={toggleChatSettings}>Refresh</button>
+          </div>
+
+        </div>
+      ) : (
+        <>
+          <div className="chat-messages" style={{ overflowY: "auto", maxHeight: "70vh" }}>
+            {messages.map((message, index) => (
+              <div key={index} className="message">
+                <strong>{message.sender_username}: </strong>
+                {message.content}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="chat-input">
+            <textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Type a message..."
+              onKeyDown={(e) => handleKeyDown(e)}
+            />
+            <button onClick={handleSendMessage}>Send</button>
+          </div>
+        </>
+      )}
+
     </div>
   );
 };
