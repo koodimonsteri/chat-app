@@ -28,6 +28,11 @@ class FriendshipStatus(PYEnum):
     REJECTED = "rejected"
 
 
+class ChatBotType(PYEnum):
+    ASSISTANT = 'assistant'
+    DEFAULT = 'default'
+
+
 user_chat_association = Table(
     "user_chats",
     Base.metadata,
@@ -47,6 +52,14 @@ friendship_association = Table(
 )
 
 
+chat_bots_association = Table(
+    "chat_bots_association",
+    Base.metadata,
+    Column("bot_id", ForeignKey("chatbots.id", ondelete="CASCADE"), primary_key=True),
+    Column("chat_id", ForeignKey("chats.id", ondelete="CASCADE"), primary_key=True)
+)
+
+
 class Chat(Base):
     __tablename__ = 'chats'
 
@@ -60,7 +73,9 @@ class Chat(Base):
     chat_owner_id = Column(Integer, ForeignKey('users.id'), nullable=False) 
     chat_owner: Mapped[User] = relationship(back_populates="own_chats")
 
-    has_bot = Column(Boolean, nullable=False, default=False)
+    chat_bots: Mapped[List["ChatBot"]] = relationship(
+        "ChatBot", secondary=chat_bots_association, back_populates="chats"
+    )
 
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
@@ -104,17 +119,19 @@ class User(Base):
         back_populates='friends'
     )
 
-    sent_requests = relationship(
+    sent_requests: Mapped[List[FriendRequest]] = relationship(
         "FriendRequest",
         foreign_keys="[FriendRequest.sender_id]",
         back_populates="sender"
     )
 
-    received_requests = relationship(
+    received_requests: Mapped[List[FriendRequest]] = relationship(
         "FriendRequest",
         foreign_keys="[FriendRequest.receiver_id]",
         back_populates="receiver"
     )
+
+    user_bots: Mapped[List[ChatBot]] = relationship("ChatBot", back_populates="user")
 
     def __repr__(self):
         return f"<User(username={self.username}, email={self.email})>"
@@ -154,4 +171,29 @@ class FriendRequest(Base):
     receiver = relationship("User", foreign_keys=[receiver_id], back_populates="received_requests")
 
     created_at = Column(DateTime, server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class ChatBot(Base):
+    __tablename__ = 'chatbots'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+
+    type = Column(SQLEnum(ChatBotType), default=ChatBotType.DEFAULT, nullable=False)
+    system_prompt = Column(TEXT, nullable=True)
+    api_token = Column(String(255), default='', nullable=True)
+
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user = relationship("User", back_populates="user_bots")
+
+    chats: Mapped[List[Chat]] = relationship(
+        "Chat", secondary=chat_bots_association, back_populates="chat_bots"
+    )
+
+    is_active = Column(Boolean, default=True)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
 

@@ -11,7 +11,3 @@ def decrypt_token(encrypted_token: str) -> str:
     return fernet_context.decrypt(encrypted_token.encode()).decode()
 
 
-
-
-
-

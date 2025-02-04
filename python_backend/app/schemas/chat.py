@@ -18,6 +18,7 @@ class ChatOwnerResponse(BaseModel):
     username: str
     
 
+# Todo separate basechat
 class ReadChat(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -28,6 +29,8 @@ class ReadChat(BaseModel):
     description: str
     is_private: bool
     chat_owner: user_schema.ReadUser
+
+    has_bot: bool
 
     created_at: datetime
     updated_at: datetime
