@@ -10,7 +10,7 @@ from sqlalchemy.exc import SQLAlchemyError
 #import jwt
 #import settings
 from core.database import get_db
-from schemas import user as schema, auth as auth_schema, friend_request
+from schemas import user as schema, auth as auth_schema, friend_request, chatbot
 from schemas.general import PaginationParams
 from crud import user as crud 
 from core.authentication import authenticate_user
@@ -199,7 +199,7 @@ async def delete_user(
     return deleted_user
 
 ###########################################
-#             Friend routes               #
+#                 Friends                 #
 ###########################################
 
 @router.get(
@@ -299,3 +299,45 @@ async def reject_friend_request(
         raise e
     return rejected_request
 
+
+###########################################
+#                ChatBots                 #
+###########################################
+# Need to refactor these at some point!!
+
+@router.get(
+    path='/{user_id}/chatbots'
+)
+async def get_chatbots(
+    user_id: str,
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
+):
+    logger.info('Get user %s chatbots', user_id)
+
+    if current_user.id != user_id:
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
+
+    chatbots = await crud.get_user_chatbots(db_session, user_id)
+
+    return chatbots
+
+
+@router.post(
+    path='/{user_id}/chatbots',
+    response_model=chatbot.ReadChatBot
+)
+async def get_chatbots(
+    user_id: str,
+    bot_data: chatbot.CreateChatBot,
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
+):
+    logger.info('Post user %s chatbot', user_id)
+
+    if current_user.id != user_id:
+        raise HTTPException(status_code=404, detail="Invalid permissions or user not found")
+
+    chatbots = await crud.create_user_chatbots(db_session, current_user, bot_data)
+
+    return chatbots

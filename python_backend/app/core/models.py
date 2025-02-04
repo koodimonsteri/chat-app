@@ -30,6 +30,7 @@ class FriendshipStatus(PYEnum):
 
 class ChatBotType(PYEnum):
     ASSISTANT = 'assistant'
+    CUSTOM = 'custom'
     DEFAULT = 'default'
 
 

@@ -1,4 +1,4 @@
-
+from sqlalchemy.exc import SQLAlchemyError
 # TODO exception handler factory + error codes 
 
 # 404
@@ -23,7 +23,7 @@ class PermissionError(Exception):
 
 
 # Maybe extend sqlalchemy?
-class DatabaseError(Exception):
+class DatabaseError(SQLAlchemyError):
     def __init__(self, message="Something happened with database.."):
         self.message = message
         super().__init__(self.message)

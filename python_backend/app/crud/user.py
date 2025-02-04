@@ -5,12 +5,14 @@ from starlette.exceptions import HTTPException
 from sqlalchemy import delete
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
 
-from core.exceptions import ResourceNotFoundError, DatabaseError
-from core.models import User, FriendRequest
+from core.exceptions import ResourceNotFoundError, DatabaseError, ResoureExists
+from core.models import User, FriendRequest, ChatBot
 from core.openai import encrypt_token
 from schemas.friend_request import FriendshipStatus
+from schemas.chatbot import CreateChatBot
 from schemas.general import PaginationParams
 
 logger = logging.getLogger('uvicorn')
@@ -220,3 +222,48 @@ async def reject_friend_request(db: AsyncSession, user_id: int, request_id: int)
     await db.refresh(friend_request)
     logger.info('Refreshed: %s', friend_request)
     return friend_request
+
+
+
+################################################
+#               ChatBot stuff                  #
+################################################
+
+
+async def get_user_chatbots(db: AsyncSession, user_id: int):
+
+    user_bots = await db.execute(
+        select(User)
+        .where(User.id == user_id)
+        .options(joinedload(User.user_bots))
+    )
+
+    return user_bots.scalars().all()
+
+
+async def create_user_chatbots(db: AsyncSession, current_user: User, bot_data: CreateChatBot):
+    result = await db.execute(select(ChatBot).filter_by(user_id=current_user.id, name=bot_data.name))
+    existing_bot = result.one_or_none()
+    if existing_bot:
+        raise ResoureExists(message=f'Chatbot with same name exists already: {bot_data.name}')
+
+    new_chatbot = ChatBot(
+        user_id=current_user.id,
+        user=current_user,
+        name=bot_data.name,
+        type=bot_data.chatbot_type,
+        system_prompt=bot_data.system_prompt,
+        api_token=bot_data.api_token
+    )
+
+    try:
+        db.add(new_chatbot)
+        await db.commit()
+        await db.refresh(new_chatbot)
+    except SQLAlchemyError as e:
+        logger.error('Failed to create new chatbot..')
+        logger.exception(e)
+        raise DatabaseError('Failed to create new chatbot.')
+
+    return new_chatbot
+

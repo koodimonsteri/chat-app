@@ -43,4 +43,5 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             yield session
         except SQLAlchemyError as e:
             logger.error('SQLAlchemyError: %s', e)
+            await session.rollback()
             raise e
