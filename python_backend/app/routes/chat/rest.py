@@ -3,10 +3,11 @@ from typing import List
 
 
 from fastapi import APIRouter, Depends
-from starlette.requests import Request
+from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.exceptions import HTTPException
 
 from core.authentication import authenticate_user
+from core.database import get_db
 from crud import chat as chat_crud
 from crud import user as user_crud
 #from models import Chat
@@ -27,16 +28,16 @@ router = APIRouter(
     response_model=List[chat_schema.ReadChat]
 )
 async def get_chats(
-    request: Request,
     params: chat_schema.GetChatsParams = Depends(),
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
 ):
     """ Get public chats or search by name. """
     logger.info('Get chats with params: %s', params)
     if params.current_user:
-        chats = await chat_crud.get_current_user_chats(request.state.db, current_user)
+        chats = await chat_crud.get_current_user_chats(db_session, current_user)
     else:
-        chats = await chat_crud.get_chats(request.state.db, params)
+        chats = await chat_crud.get_chats(db_session, params)
     
     return chats
 
@@ -46,14 +47,14 @@ async def get_chats(
     response_model=List[chat_schema.ReadChat]
 )
 async def get_chat(
-    request: Request,
     chat_id: int,
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
 ):
     """ Get chat by chat id. """
     logger.info('Get chat by id: %s', chat_id)
 
-    chat = await chat_crud.get_chat_by_id(request.state.db, chat_id)
+    chat = await chat_crud.get_chat_by_id(db_session, chat_id)
     if not chat or current_user not in chat.users:
         raise HTTPException(
             status_code=403,
@@ -68,14 +69,13 @@ async def get_chat(
     response_model=chat_schema.ReadChat
 )
 async def post_chat(
-    request: Request,
     chat_data: chat_schema.CreateChat,
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
 ):
     """ Create new chat. """
-
-    new_chat = await chat_crud.create_chat(request.state.db, current_user, chat_data)
-    
+    logger.info('Create new chat: %s', chat_data)
+    new_chat = await chat_crud.create_chat(db_session, current_user, chat_data)
     return new_chat
 
 
@@ -85,42 +85,31 @@ async def post_chat(
 )
 async def patch_chat(
     chat_id: str,
-    request: Request,
     chat_data: chat_schema.CreateChat,
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
 ):
     """ Patch chat by chat id. """
     logger.info('Patch chat, id: %s', chat_id)
-
-    existing_chat = await chat_crud.get_chat_by_id(request.state.db, chat_id)
-    if not existing_chat or existing_chat.chat_owner_id != current_user.id:
-        raise HTTPException(
-            status_code=404,
-            detail="Chat not found or access denied."
-        )
     
-    for var, value in vars(chat_data).items():
-        setattr(existing_chat, var, value) if value is not None else None
-
-    request.state.db.add(existing_chat)
-    await request.state.db.commit()
-    await request.state.db.refresh(existing_chat)
-
-    return existing_chat
+    # TODO username and password ??
+    patched_chat = await chat_crud.patch_chat(db_session, current_user, chat_id, chat_data)
+    
+    return patched_chat
 
 
 @router.delete(
-        path="/{chat_id}",
-        response_model=chat_schema.ReadChat
+    path="/{chat_id}",
+    response_model=chat_schema.ReadChat
 )
 async def delete_chat_endpoint(
     chat_id: int,
-    request: Request,
-    current_user: User = Depends(authenticate_user)
+    current_user: User = Depends(authenticate_user),
+    db_session: AsyncSession = Depends(get_db)
 ):
     """Delete a chat by chat id."""
 
     logger.info('Delete chat by id: %s', chat_id)
-    deleted_chat = await chat_crud.delete_chat(request.state.db, chat_id, current_user.id)
+    deleted_chat = await chat_crud.delete_chat(db_session, chat_id, current_user.id)
 
     return deleted_chat

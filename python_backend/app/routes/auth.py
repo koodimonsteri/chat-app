@@ -5,9 +5,11 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt
 from starlette.requests import Request, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
 
 from core.authentication import load_private_key, load_public_key
+from core.database import get_db
 from crud import user as crud
 from core.models import User
 from schemas import auth as auth_schema, user as user_schema
@@ -33,9 +35,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 )
 async def register(
     user_data: auth_schema.RegisterUser,
-    request: Request,
+    db_session: AsyncSession = Depends(get_db)
 ):
-    existing_user = await crud.get_user_by_name(request.state.db, user_data.username)
+    existing_user = await crud.get_user_by_name(db_session, user_data.username)
     if existing_user:
 
         raise HTTPException(
@@ -43,7 +45,7 @@ async def register(
             detail="Username already taken"
         )
 
-    existing_user = await crud.get_user_by_email(request.state.db, user_data.username)
+    existing_user = await crud.get_user_by_email(db_session, user_data.username)
     if existing_user:
         raise HTTPException(
             status_code=400,
@@ -58,7 +60,7 @@ async def register(
         pw_hash=hashed_password
     )
 
-    created = await crud.create_user(request.state.db, new_user)
+    created = await crud.create_user(db_session, new_user)
     return created
 
 
@@ -68,11 +70,11 @@ async def register(
     response_model=auth_schema.Token
 )
 async def login(
-    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
+    db_session: AsyncSession = Depends(get_db)
 ):
     logger.info('Logging in as user: %s', form_data.username)
-    existing_user = await crud.get_user_by_name(request.state.db, form_data.username)
+    existing_user = await crud.get_user_by_name(db_session, form_data.username)
     if not existing_user:
         raise HTTPException(
             status_code=401,

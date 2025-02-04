@@ -11,6 +11,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.exceptions import ExceptionMiddleware
 
+from core.exceptions import ResourceNotFoundError, ResoureExists
 from core.authentication import load_public_key
 from core.database import get_db
 #from crud import user as user_crud
@@ -57,13 +58,29 @@ def register_exception_handlers(app: FastAPI):
         )
     app.add_exception_handler(StarletteHTTPException, my_exception_handler)
 
+
+    logger.info('Register ResourceNotFoundError exception handler.')
+    @app.exception_handler(ResourceNotFoundError)
+    async def resource_not_found_exception_handler(request, exc: ResourceNotFoundError):
+        logger.error(f"ResourceNotFoundError: {exc}")
+        return JSONResponse(
+            status_code=404,
+            content={"message": "Resource not found."},
+        )
+    
+    logger.info('Register ResoureExists exception handler.')
+    @app.exception_handler(ResoureExists)
+    async def resource_exists_exception_handler(request, exc: ResoureExists):
+        logger.error(f"ResoureExists: {exc}")
+        return JSONResponse(
+            status_code=409,
+            content={"message": exc.message},
+        )
+
     # fallback exception handler
     logger.info('Register unhandled exception handler.')
     @app.exception_handler(Exception)
     async def general_exception_handler(request, exc: Exception):
-        logger.error('On general exception handler')
-        if isinstance(exc, StarletteHTTPException):
-            logger.error('This is starlette exception!!')
         logger.error(f"Unexpected error: {exc}")
         return JSONResponse(
             status_code=500,
@@ -148,4 +165,4 @@ def register_middlewares(app: FastAPI):
     #register_authentication(app, exclude_paths)
 
     logger.info('Register db session middleware.')
-    register_db_session(app)
+    #register_db_session(app)

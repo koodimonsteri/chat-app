@@ -131,7 +131,7 @@ const ChatRoom = ({ onLogout }) => {
     });
   };
 
-  const saveChatSettings = () => {
+  const updateChatSettings = () => {
     //handleUpdateChatSettings(chatSettings);
     setShowChatSettings(false);
   };
@@ -213,7 +213,7 @@ const ChatRoom = ({ onLogout }) => {
             )}
           </div>
           <div className="button-container">
-            <button onClick={saveChatSettings}>Save</button>
+            <button onClick={updateChatSettings}>Update</button>
             <button onClick={toggleChatSettings}>Refresh</button>
           </div>
 

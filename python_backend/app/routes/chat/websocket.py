@@ -5,7 +5,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException
 
-from core.database import get_db
+from core.database import get_db, get_db_context, AsyncSessionLocal
 from core.models import ChatMessage
 from schemas import message as msg_schema
 from core.authentication import check_jwt
@@ -43,37 +43,38 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: int):
 
     username = token_data.get('sub')
 
+    db = AsyncSessionLocal()
+
     try:
-        async with get_db() as db:
+        current_user = await user_crud.get_user_by_name(db, username)
+        if not current_user:
+            logger.error('Failed to get user: %s', username)
+            await websocket.close(code=3000)
+            return
 
-            current_user = await user_crud.get_user_by_name(db, username)
-            if not current_user:
-                logger.error('Failed to get user: %s', username)
-                await websocket.close(code=3000)
-                return
-            logger.info('Current user: %s', current_user)
+        logger.info('Current user: %s', current_user)
 
-            chat = await chat_crud.get_chat_by_id(db, chat_id)
-            if not chat:
-                logger.error('Failed to get chat: %s', chat_id)
-                await websocket.close(code=3000)
-                return
-            logger.info('Current chat: %s', chat)
+        chat = await chat_crud.get_chat_by_id(db, chat_id)
+        if not chat:
+            logger.error('Failed to get chat: %s', chat_id)
+            await websocket.close(code=3000)
+            return
 
-            if current_user not in chat.users:
-                logger.info('Adding user to chat.')
-                chat.users.append(current_user)
-                db.add(chat)
-                await db.commit()
-                await db.refresh(chat)
+        logger.info('Current chat: %s', chat)
 
-                
+        if current_user not in chat.users:
+            logger.info('Adding user to chat.')
+            chat.users.append(current_user)
+            db.add(chat)
+            await db.commit()
+            await db.refresh(chat)
+
     except SQLAlchemyError as e:
         logger.error('Error while joining chat..')
         logger.exception(e)
         await websocket.close(code=3001)
         return
-    
+
     await websocket.accept()
     logger.info('New user connected: %s', username)
 
@@ -82,16 +83,12 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: int):
     chat_connections[chat_id][current_user.id] = websocket
 
     try:
-        async with get_db() as db:
+        messages = await msg_crud.get_message_history(db, chat_id)
+        logger.info('Messages: %s', messages)
 
-            messages = await msg_crud.get_message_history(db, chat_id)
-            logger.info('Messages: %s', messages)
-
-            for msg in messages:
-                logger.info('New msg: %s', msg)
-                message = msg_schema.MessageRead.model_validate(msg)
-                logger.info('New message: %s', message)
-                await websocket.send_json(message.model_dump(mode='json'))
+        for msg in messages:
+            message = msg_schema.MessageRead.model_validate(msg)
+            await websocket.send_json(message.model_dump(mode='json'))
 
     except SQLAlchemyError as e:
         logger.error('Error fetching message history')
@@ -106,43 +103,43 @@ async def websocket_endpoint(websocket: WebSocket, chat_id: int):
             logger.info('Received data: %s', data)
             message_data = msg_schema.MessageCreate.model_validate(data)
 
-            async with get_db() as db:
-                try:
-                    message = ChatMessage(
-                        chat_id=chat_id,
-                        sender_id=current_user.id,
-                        sender_username=current_user.username,
-                        content=message_data.content,
-                    )
-                    db.add(message)
-                    await db.commit()
-                    await db.refresh(message)
-                    logger.info('Created message: %s', message)
-                except SQLAlchemyError as e:
-                    logger.error('Database error..')
-                    logger.exception(e)
-                    await websocket.send_json({"error": "Database error occurred."})
-                    continue
-            
-                try:
-                    logger.info('Before validate: %s', message)
-                    broadcast_message = msg_schema.MessageRead.model_validate(message)
-                    logger.info('After validate: %s', message)
-                    msg = broadcast_message.model_dump(mode='json')
-                    logger.info('Serialized message: %s', msg)
-                    logger.info('len chat connections: %s', len(chat_connections[chat_id]))
-                    for user_id, ws in chat_connections[chat_id].items():
-                        #if conn != websocket:
-                        logger.info('Broadcasting to: %s', user_id)
-                        await ws.send_json(msg)
+            try:
+                message = ChatMessage(
+                    chat_id=chat_id,
+                    sender_id=current_user.id,
+                    sender_username=current_user.username,
+                    content=message_data.content,
+                )
+                db.add(message)
+                await db.commit()
+                await db.refresh(message)
+                logger.info('Created message: %s', message)
+            except SQLAlchemyError as e:
+                logger.error('Database error..')
+                logger.exception(e)
+                await websocket.send_json({"error": "Database error occurred."})
+                continue
+        
+            try:
+                broadcast_message = msg_schema.MessageRead.model_validate(message)
+                msg = broadcast_message.model_dump(mode='json')
+                logger.info('Serialized message: %s', msg)
 
-                except Exception as e:
-                    logger.error('Failed to broadcast message.')
-                    logger.exception(e)
-                    continue
+                for user_id, ws in chat_connections.get(chat_id, {}).items():
+                    logger.info('Broadcasting to: %s', user_id)
+                    await ws.send_json(msg)
+
+            except Exception as e:
+                logger.error('Failed to broadcast message.')
+                logger.exception(e)
+                continue
 
     except WebSocketDisconnect:
         del chat_connections[chat_id][current_user.id]
-        if not chat_connections[chat_id]:
+        if not chat_connections[chat_id]:  # Make sure key exists before deleting
             del chat_connections[chat_id]
+
+    finally:
+        await db.close()  # ✅ Always close the session to free resources
+        await websocket.close()  # ✅ Ensure WebSocket is properly closed
 

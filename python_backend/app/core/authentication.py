@@ -9,7 +9,7 @@ from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud import user
-from core.database import get_db, get_db2
+from core.database import get_db
 from core.models import User
 from core import settings
 
@@ -55,7 +55,7 @@ def check_jwt(token: str) -> Dict[str, Any]:
 
 async def authenticate_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-    db_session: AsyncSession = Depends(get_db2)
+    db_session: AsyncSession = Depends(get_db)
 ) -> User:
     logger.info("Authenticating user")
     token = credentials.credentials

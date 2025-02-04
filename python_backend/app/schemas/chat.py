@@ -30,8 +30,6 @@ class ReadChat(BaseModel):
     is_private: bool
     chat_owner: user_schema.ReadUser
 
-    has_bot: bool
-
     created_at: datetime
     updated_at: datetime
     

@@ -9,6 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from core.exceptions import ResourceNotFoundError, DatabaseError
 from core.models import User, FriendRequest
+from core.openai import encrypt_token
 from schemas.friend_request import FriendshipStatus
 from schemas.general import PaginationParams
 
@@ -64,6 +65,37 @@ async def create_user(db: AsyncSession, new_user: User):
     await db.refresh(new_user)
 
     return new_user
+
+
+async def patch_user(db: AsyncSession, user_id, user_data: User):
+    existing_user = await get_user_by_id(db, user_id)
+    if not existing_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+    
+    if user_data.email:
+        check_email = await get_user_by_email(db, user_data.email)
+        if check_email:
+            raise HTTPException(
+                status_code=400,
+                detail="Email already taken",
+            )
+        setattr(existing_user, 'email', user_data.email)
+    
+    if user_data.description:
+        setattr(existing_user, 'description', user_data.description)
+
+    if user_data.openai_token:
+        encrypted = encrypt_token(user_data.openai_token)
+        setattr(existing_user, 'openai_token', encrypted)
+
+    await db.commit()
+    await db.refresh(existing_user)
+
+    return existing_user
+
 
 
 async def delete_user(db: AsyncSession, user_id: int):

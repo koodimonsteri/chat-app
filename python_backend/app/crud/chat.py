@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload, selectinload
 
-from core.exceptions import ResourceNotFoundError
+from core.exceptions import ResourceNotFoundError, ResoureExists
 from core.models import Chat, User
 from schemas import chat as chat_schema
 
@@ -47,6 +47,11 @@ async def create_chat(
     current_user: User, 
     chat_data: chat_schema.CreateChat
 ) -> Chat:
+    
+    current_user_chats = await get_current_user_chats(db, current_user)
+    if any([x.name == chat_data.name for x in current_user_chats]):
+        raise ResoureExists(f'Chat exists already: {chat_data.name}')
+
     new_chat = Chat(
         name=chat_data.name,
         description=chat_data.description,
@@ -67,6 +72,20 @@ async def create_chat(
     )
     chat_with_relations = chat_with_relations.scalar_one()
     return chat_with_relations
+
+
+async def patch_chat(db: AsyncSession, current_user, chat_id, chat_data: chat_schema.CreateChat):
+    existing_chat = await get_chat_by_id(db, chat_id)
+    if not existing_chat or existing_chat.chat_owner_id != current_user.id:
+        raise ResourceNotFoundError("Chat not found or access denied.")
+    
+    for var, value in vars(chat_data).items():
+        setattr(existing_chat, var, value) if value is not None else None
+
+    db.add(existing_chat)
+    await db.commit()
+    await db.refresh(existing_chat)
+    return existing_chat
 
 
 async def delete_chat(db: AsyncSession, chat_id: int, current_user_id: int):
