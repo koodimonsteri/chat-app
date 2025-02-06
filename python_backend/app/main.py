@@ -4,7 +4,7 @@ from core.middleware import register_middlewares
 from routes import auth
 from routes.chat import rest as chat, websocket as chat_ws
 from routes.user import rest as user
-
+from routes.admin import admin
 
 app = FastAPI(
     title='Chat application backend',
@@ -25,6 +25,7 @@ ws_router = APIRouter(
 api_router.include_router(auth.router)
 api_router.include_router(user.router)
 api_router.include_router(chat.router)
+api_router.include_router(admin.router)
 
 ws_router.include_router(chat_ws.router)
 
@@ -34,4 +35,4 @@ app.include_router(ws_router)
 
 @app.get("/")
 async def read_root():
-    return {"message": "Hello, FastAPI with Docker!"}
+    return {"message": "Hello, this is chat-app backend root page!"}

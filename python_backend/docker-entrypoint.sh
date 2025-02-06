@@ -35,6 +35,8 @@ if [ ! -f /tmp/.setup_done ]; then
     alembic upgrade head
     cd ..
 
+    python ./app/prefill_db.py
+
     touch /tmp/.setup_done
 fi
 

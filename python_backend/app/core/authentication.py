@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from crud import user
 from core.database import get_db
-from core.models import User
+from core.models import User, UserRole
 from core import settings
 
 logger = logging.getLogger('uvicorn')
@@ -73,4 +73,15 @@ async def authenticate_user(
 
     logger.info("User authenticated: %s", username)
     
+    return current_user
+
+
+async def admin_required(
+    current_user: User = Depends(authenticate_user)
+) -> User:
+    if current_user.role != UserRole.ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="You do not have the required permissions"
+        )
     return current_user

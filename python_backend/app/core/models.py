@@ -22,6 +22,11 @@ from sqlalchemy.sql import func
 Base = declarative_base()
 
 
+class UserRole(PYEnum):
+    ADMIN = 'admin'
+    USER = 'user'
+
+
 class FriendshipStatus(PYEnum):
     PENDING = "pending"
     ACCEPTED = "accepted"
@@ -99,6 +104,8 @@ class User(Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     pw_hash = Column(String(255), nullable=False)
     description = Column(TEXT, default='', nullable=True)
+
+    role = Column(SQLEnum(UserRole), nullable=False, default=UserRole.USER)
 
     openai_token = Column(String(255), default='', nullable=False)
 

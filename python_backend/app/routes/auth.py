@@ -89,6 +89,7 @@ async def login(
     
     payload = {
         "sub": existing_user.username,
+        "role": existing_user.role.value,
         "exp": datetime.now(tz=timezone.utc) + timedelta(seconds=settings.JWT_EXPIRES_SECONDS)
     }
     token = jwt.encode(payload, JWT_PRIVATE_KEY, algorithm=settings.JWT_ALGORITHM)

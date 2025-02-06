@@ -7,8 +7,6 @@ from starlette.exceptions import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import SQLAlchemyError
 
-#import jwt
-#import settings
 from core.database import get_db
 from schemas import user as schema, auth as auth_schema, friend_request, chatbot
 from schemas.general import PaginationParams
