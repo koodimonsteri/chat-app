@@ -65,7 +65,7 @@ class Chat(Base):
     __tablename__ = 'chats'
 
     id = Column(Integer, primary_key=True)
-    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
 
     name = Column(String(255), nullable=False)
     description = Column(TEXT, nullable=True)
@@ -93,7 +93,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
 
     username = Column(String(255), unique=True, index=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
@@ -142,9 +142,9 @@ class ChatMessage(Base):
     __tablename__ = "messages"
 
     id = Column(Integer, primary_key=True)
-    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
 
-    chat_id = Column(Integer, ForeignKey('chats.id'), nullable=False) 
+    chat_id = Column(Integer, ForeignKey('chats.id', ondelete='CASCADE'), nullable=False, index=True) 
     sender_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     sender_username = Column(String(255), nullable=False)
 
@@ -161,7 +161,7 @@ class FriendRequest(Base):
     __tablename__ = 'friend_requests'
 
     id = Column(Integer, primary_key=True)
-    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
 
     sender_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
     receiver_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
@@ -179,6 +179,7 @@ class ChatBot(Base):
     __tablename__ = 'chatbots'
 
     id = Column(Integer, primary_key=True)
+    guid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False, index=True)
     name = Column(String(255), nullable=False)
 
     type = Column(SQLEnum(ChatBotType), default=ChatBotType.DEFAULT, nullable=False)
