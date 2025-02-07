@@ -7,7 +7,7 @@ Created REST API backend.
 But in the end rewrote backend with python fastapi.\
 And extended from there.\
 Chat rooms work finally! :)\
-Friendship stuff kinda works
+
 
 Nice docker detup.\
 rename .env.example to .env in project root\
@@ -22,6 +22,23 @@ Group chat - public  - E2E\
 1 on 1 chat with friends - no encryption\
 1 on 1 chat with friends - E2E\
 Personal LLM chat (+RAG)
+
+
+Frontend optimized api:\
+/api/users            GET, PATCH, DELETE\
+/api/chats            GET, POST, PATCH, DELETE\
+/api/chatbots         GET, POST, PATCH, DELETE\
+/api/friend-requests  GET, POST
+
+Websockets:\
+/ws/chat
+
+
+Admin api to access all:\
+/api/admin/users/  
+/api/admin/chats/  
+/api/admin/chatbots/
+
 
 
 PHP symfony backend (outdated):
